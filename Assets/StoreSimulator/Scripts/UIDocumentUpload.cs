@@ -139,15 +139,13 @@ namespace FLOBUK.StoreSimulator
             Button[] buttons = item.GetComponentsInChildren<Button>();
             if (buttons.Length > 0)
             {
-                string capturedName = fileName;
-                buttons[0].onClick.AddListener(() => ImportDocument(capturedName));
+                buttons[0].onClick.AddListener(() => ImportDocument(fileName));
             }
 
             //set up remove button (second button found)
             if (buttons.Length > 1)
             {
-                string capturedName = fileName;
-                buttons[1].onClick.AddListener(() => RemoveDocument(capturedName));
+                buttons[1].onClick.AddListener(() => RemoveDocument(fileName));
             }
         }
 
