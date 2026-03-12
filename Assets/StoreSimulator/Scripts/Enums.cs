@@ -151,4 +151,61 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         Floor
     }
+
+    /// <summary>
+    /// Roles that can be assigned to employees.
+    /// </summary>
+    public enum EmployeeRole
+    {
+        /// <summary>
+        /// Attends customers at the cash register automatically.
+        /// </summary>
+        Cashier,
+        /// <summary>
+        /// Restocks products on shelves automatically.
+        /// </summary>
+        Stocker
+    }
+
+    /// <summary>
+    /// Types of shoplifters with different behaviors.
+    /// </summary>
+    public enum ShoplifterType
+    {
+        /// <summary>
+        /// Standard shoplifter with normal speed and detection chance.
+        /// </summary>
+        Common,
+        /// <summary>
+        /// Harder to detect, targets expensive products.
+        /// </summary>
+        Expert,
+        /// <summary>
+        /// Moves quickly and escapes faster.
+        /// </summary>
+        Fast
+    }
+
+    /// <summary>
+    /// Categories of nodes in the Entrepreneur Skill Tree.
+    /// </summary>
+    public enum SkillTreeCategory
+    {
+        /// <summary>
+        /// Skill nodes that unlock abilities.
+        /// </summary>
+        Skill,
+        /// <summary>
+        /// Product nodes that unlock new items to sell.
+        /// </summary>
+        Product,
+        /// <summary>
+        /// Employee nodes that unlock employee slots.
+        /// </summary>
+        Employee,
+        /// <summary>
+        /// Upgrade nodes that improve store features.
+        /// </summary>
+        Upgrade
+    }
 }

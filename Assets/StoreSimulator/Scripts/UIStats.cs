@@ -86,6 +86,21 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public TMP_Text xpLevel;
 
+        /// <summary>
+        /// Label displaying the number of shoplifters caught this day. (RQF20)
+        /// </summary>
+        public TMP_Text shopliftersCaught;
+
+        /// <summary>
+        /// Label displaying the number of shoplifters who escaped this day. (RQF20)
+        /// </summary>
+        public TMP_Text shopliftersEscaped;
+
+        /// <summary>
+        /// Label displaying the total money lost to shoplifters this day. (RQF20)
+        /// </summary>
+        public TMP_Text moneyLostToTheft;
+
 
         //initialize references
         void Awake()
@@ -138,6 +153,14 @@ namespace FLOBUK.StoreSimulator
             JSONNode storeData = SaveGameSystem.ReadComponentData("StoreDatabase");
             moneyCurrent.text = StoreDatabase.FromLongToStringMoney(storeData["currentMoney"].AsLong);
             xpLevel.text = storeData["currentLevel"].Value;
+
+            //robbery report data (RQF20)
+            if (shopliftersCaught != null)
+                shopliftersCaught.text = dailyData["shopliftersCaught"].AsInt.ToString();
+            if (shopliftersEscaped != null)
+                shopliftersEscaped.text = dailyData["shopliftersEscaped"].AsInt.ToString();
+            if (moneyLostToTheft != null)
+                moneyLostToTheft.text = StoreDatabase.FromLongToStringMoney(dailyData["moneyLostToTheft"].AsLong);
 
             StartCoroutine(AnimateActive());
         }
