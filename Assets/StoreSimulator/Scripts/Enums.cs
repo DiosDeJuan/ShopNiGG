@@ -208,4 +208,58 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         Upgrade
     }
+
+    /// <summary>
+    /// Defines the functional zones of the supermarket map.
+    /// </summary>
+    public enum MapZone
+    {
+        /// <summary>
+        /// Main entrance with automatic doors and cart area.
+        /// </summary>
+        MainEntrance,
+        /// <summary>
+        /// Sales floor with gondolas, refrigerators, and product displays.
+        /// </summary>
+        SalesFloor,
+        /// <summary>
+        /// Cash register area with queuing lanes.
+        /// </summary>
+        CashRegisters,
+        /// <summary>
+        /// Player office with desk, laptop, and management tablet.
+        /// </summary>
+        PlayerOffice,
+        /// <summary>
+        /// Storage and warehouse area for product packages.
+        /// </summary>
+        Storage,
+        /// <summary>
+        /// Loading dock for product deliveries.
+        /// </summary>
+        LoadingDock,
+        /// <summary>
+        /// External parking lot for customers.
+        /// </summary>
+        Parking,
+        /// <summary>
+        /// External access road and sidewalks.
+        /// </summary>
+        AccessRoad
+    }
+
+    /// <summary>
+    /// Type of modular expansion module for the supermarket.
+    /// </summary>
+    public enum ExpansionType
+    {
+        /// <summary>
+        /// Sales floor expansion adding 16 m² of retail space.
+        /// </summary>
+        SalesFloor,
+        /// <summary>
+        /// Storage expansion adding 32 m² of warehouse space.
+        /// </summary>
+        Storage
+    }
 }

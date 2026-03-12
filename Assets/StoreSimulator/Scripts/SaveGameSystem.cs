@@ -101,6 +101,8 @@ namespace FLOBUK.StoreSimulator
                 data["SecuritySystem"] = SecuritySystem.Instance.SaveToJSON();
             if (ShoplifterSystem.Instance != null)
                 data["ShoplifterSystem"] = ShoplifterSystem.Instance.SaveToJSON();
+            if (MapLayoutSystem.Instance != null)
+                data["MapLayoutSystem"] = MapLayoutSystem.Instance.SaveToJSON();
 
             byte[] dataAsBytes = Encoding.ASCII.GetBytes(data.ToString());
             try { File.WriteAllBytes(Application.persistentDataPath + "/" + fileName + fileExt, dataAsBytes); }
@@ -176,6 +178,8 @@ namespace FLOBUK.StoreSimulator
                 SecuritySystem.Instance.LoadFromJSON(gameData["SecuritySystem"]);
             if (ShoplifterSystem.Instance != null)
                 ShoplifterSystem.Instance.LoadFromJSON(gameData["ShoplifterSystem"]);
+            if (MapLayoutSystem.Instance != null)
+                MapLayoutSystem.Instance.LoadFromJSON(gameData["MapLayoutSystem"]);
             
             //notify subscribed scripts of data update
             dataLoadEvent?.Invoke();
