@@ -95,6 +95,7 @@ namespace FLOBUK.StoreSimulator
                 }
             }
 
+            UpgradeSystem.onUpgradePurchase -= OnExpansionPurchase;
             UpgradeSystem.onUpgradePurchase += OnExpansionPurchase;
         }
 

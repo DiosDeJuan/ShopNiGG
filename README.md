@@ -77,7 +77,7 @@ The supermarket grows through modular expansion modules:
 
 1. **Terrain Setup**: Create a flat 30m × 30m plane. Place the store building prefab at center with parking in front and loading dock at the rear.
 2. **Zone Layout**: Use `MapZoneConfig` ScriptableObjects to define each zone's dimensions, position offset, and expansion rules. Assign them to `MapLayoutSystem.zoneConfigs` in the inspector.
-3. **Sales Floor**: Place `StorageGrid` components for the initial 192 m² area. Add shelf prefabs (`Shelf_A`, `Shelf_B`, `Shelf_C`) in rows with 2m aisle spacing. Use `StorageGridBlocker` for walls and pillars.
+3. **Sales Floor**: Place `StorageGrid` components for the initial 192 m² area. Add shelf prefabs (`Shelf_A`, `Shelf_B`, `Shelf_C`) in rows with 2m aisle spacing. Use `GridBlocker` prefabs for walls and pillars.
 4. **Cash Registers**: Place `CashDesk` prefabs near the exit with queue lanes. Leave space for `SelfCheckout` prefabs as the store expands.
 5. **Player Office**: Place the `Computer` prefab (shop desktop) and configure the 32 m² room with desk and furniture.
 6. **Storage Area**: Place a `StorageGrid` for the initial 32 m² warehouse. Position the `DeliverySystem.deliveryStart` transform at the loading dock.
