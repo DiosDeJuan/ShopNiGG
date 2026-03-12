@@ -21,5 +21,10 @@ namespace FLOBUK.StoreSimulator
         /// ID of asset to be owned as pre-requisite, if any.
         /// </summary>
         public string otherRequired;
+
+        /// <summary>
+        /// The type of area this expansion adds (SalesFloor = 16 m², Storage = 32 m²).
+        /// </summary>
+        public ExpansionType expansionType;
     }
 }
