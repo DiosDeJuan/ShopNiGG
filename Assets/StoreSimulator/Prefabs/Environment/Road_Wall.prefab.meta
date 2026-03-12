@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a83425d3aef3da94fb5774a78dfc14d0
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Environment/Road_Wall.prefab
+  uploadId: 821062

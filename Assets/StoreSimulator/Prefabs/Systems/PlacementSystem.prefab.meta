@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 42f054951058d433991581711d0d5e53
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Systems/PlacementSystem.prefab
+  uploadId: 821062

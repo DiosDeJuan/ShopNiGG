@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0816e9f9e04154c46a8d6d7d4ce61a7a
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Systems/AudioSystem.prefab
+  uploadId: 821062

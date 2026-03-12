@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 380de5ae86b3aeb4f9af531a453ac5a4, type: 3}
+  m_Name: Shelf_B
+  m_EditorClassIdentifier: 
+  id: 1
+  category: storage
+  title: Shelf
+  icon: {fileID: 21300000, guid: d7d806710e0af2046b61a7ad5413bd18, type: 3}
+  requiredLevel: 0
+  buyPrice: 10000
+  prefab: {fileID: 1406330149284432790, guid: 24ee9ed7390bbf348b4ec4739b7278f6, type: 3}

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6fae986fc84e1ab4c9f687dea7e526a5
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/ScriptableObjects/Products/Product_A.asset
+  uploadId: 821062

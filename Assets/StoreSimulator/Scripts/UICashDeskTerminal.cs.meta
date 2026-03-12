@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0e181a93edf91ce4f876b0383e71e57f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Scripts/UICashDeskTerminal.cs
+  uploadId: 821062

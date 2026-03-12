@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2d4d7a966a35f4abbaf6c308a1de19ca
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/UI/UIFloatingText.prefab
+  uploadId: 821062

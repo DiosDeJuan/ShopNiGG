@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1224c9a54bfee42f5b5bac8f7520ad87
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Systems/DayCycleSystem.prefab
+  uploadId: 821062

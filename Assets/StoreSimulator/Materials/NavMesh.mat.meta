@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5276769f3d75936479913755ddadb354
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Materials/NavMesh.mat
+  uploadId: 821062

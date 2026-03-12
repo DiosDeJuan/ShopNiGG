@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5b8a1c41bacd340449f533108646a673
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2655988077585873504
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Models/FBX_Default_NoAnim.preset
+  uploadId: 821062

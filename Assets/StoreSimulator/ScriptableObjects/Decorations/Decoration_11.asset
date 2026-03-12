@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7086cfc622cd4b60a1ebe8d3dccbd8d, type: 3}
+  m_Name: Decoration_11
+  m_EditorClassIdentifier: 
+  id: 11
+  title: 'Floor: Carpet'
+  icon: {fileID: 21300000, guid: c830a6f7af82b4122a7607aaf9c4ceaf, type: 3}
+  requiredLevel: 0
+  buyPrice: 4000
+  decorationType: 1
+  texture: {fileID: 2800000, guid: c830a6f7af82b4122a7607aaf9c4ceaf, type: 3}
+  isPurchased: 0

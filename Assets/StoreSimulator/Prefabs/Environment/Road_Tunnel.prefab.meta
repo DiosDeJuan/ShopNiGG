@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 315af4bc92a5bf945be2627907b06b8a
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Environment/Road_Tunnel.prefab
+  uploadId: 821062

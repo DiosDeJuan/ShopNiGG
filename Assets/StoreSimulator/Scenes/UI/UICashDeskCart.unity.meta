@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 978d1a2fac9a5fc4dbec737d06a608e3
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Scenes/UI/UICashDeskCart.unity
+  uploadId: 821062

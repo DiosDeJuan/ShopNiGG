@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a4cfe0df86431459087bc42d1e7b0763
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Models/Materials/Material_Wall.mat
+  uploadId: 821062

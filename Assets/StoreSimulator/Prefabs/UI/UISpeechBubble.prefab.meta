@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a903ad71e11404e7aa21e56984ada00c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/UI/UISpeechBubble.prefab
+  uploadId: 821062

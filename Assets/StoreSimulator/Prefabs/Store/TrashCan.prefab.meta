@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 89fe481b10381844db526f98663a6b87
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Store/TrashCan.prefab
+  uploadId: 821062

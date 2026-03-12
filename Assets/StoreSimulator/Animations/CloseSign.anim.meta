@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8f8dcda52cb9f4fa5b5261f73a0142c6
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Animations/CloseSign.anim
+  uploadId: 821062

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b0a60ab7e6bc2c643bce9af5a9813cb8
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Scripts/UIShopDesktop.cs
+  uploadId: 821062

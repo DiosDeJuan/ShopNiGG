@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 85959b6651943ae4f9f98879be9e3add
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Scenes/Intro/LightingData.asset
+  uploadId: 821062

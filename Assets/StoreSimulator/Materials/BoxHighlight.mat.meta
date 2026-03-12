@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a67735a292b93c249919eaec124bd418
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Materials/BoxHighlight.mat
+  uploadId: 821062

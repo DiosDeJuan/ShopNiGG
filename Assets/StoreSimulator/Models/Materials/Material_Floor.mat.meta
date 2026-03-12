@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b0ee89288c981455daef86b5f84290bb
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Models/Materials/Material_Floor.mat
+  uploadId: 821062

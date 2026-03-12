@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5b0e18da5c462ad4ebe37357b006fdd9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Animations/CashRegister_Close.anim
+  uploadId: 821062

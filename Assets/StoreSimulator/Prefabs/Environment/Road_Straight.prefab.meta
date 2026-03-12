@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b30a2c04e0feab048a081f6ff8211a1e
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Environment/Road_Straight.prefab
+  uploadId: 821062

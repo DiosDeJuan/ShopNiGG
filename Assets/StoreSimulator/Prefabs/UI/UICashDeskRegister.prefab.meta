@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3a7ba8eb19d1f59489dd1e3d71fbbfbe
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/UI/UICashDeskRegister.prefab
+  uploadId: 821062

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 426f283cca54f46fdb9bb5a29e833bef
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Models/Materials/RoofTiles.mat
+  uploadId: 821062

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: fc36f5785e73d41cf9e6c0629d0ef91a
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Store/SelfCheckout.prefab
+  uploadId: 821062

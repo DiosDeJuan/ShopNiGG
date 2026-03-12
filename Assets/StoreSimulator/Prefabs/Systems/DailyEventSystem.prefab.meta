@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8aa0cd308b529436391e76584adc4750
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Systems/DailyEventSystem.prefab
+  uploadId: 821062

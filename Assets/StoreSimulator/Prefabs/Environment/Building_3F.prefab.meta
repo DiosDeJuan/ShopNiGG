@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4c549301ec9c2bd4b8b2f51c5bff3f9c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Environment/Building_3F.prefab
+  uploadId: 821062

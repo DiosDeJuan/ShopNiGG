@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: fb50cbb063f17f3459025f0d5d63942c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Store/PaymentItemCash.prefab
+  uploadId: 821062

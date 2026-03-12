@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f785d20772814ea44b6fa6c15bbf65bf
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/ScriptableObjects/Storage/Shelf_C.asset
+  uploadId: 821062

@@ -1,0 +1,95 @@
+**************************************
+CHANGELOG
+**************************************
+
+v1.2.0
+- added Self-Checkout station to computer for purchase and placement on the shop grid
+- added TutorialSystem allowing for dynamic definition of various tutorial sequences
+- added possibility to click and hold for product placement or collection from storages
+- PlacementObject, PackageObject: added fillOrder for row or column to be filled first
+- PlacementObject, PackageObject: changed to dynamic placement without fixed Transforms.
+  Added Vector2 space and Vector2 size to ProductScriptableObject for this purpose
+- fixed hiccups in object animations e.g. when triggering place/collect of the same item
+
+UPGRADE NOTES:
+- Open all storage prefabs and locate their PlacementObject components. Set their space
+  variable to the desired area size for placement. Delete the child Transforms under Container
+- Do the same with box prefabs: set space variable and delete child Transforms under Container 
+- Test that products can be correctly placed in your storages and have the correct rotation
+
+v1.1.1
+- fixed NRE on customers trying to pay due to raycast returning the wrong game object
+
+v1.1.0
+- added volume and view sensitivity to pause menu including persistent storage of settings
+- added option to set store name from the computer under the new customization category
+- added DecorationScriptableObject for customizing Wall and Floor textures from the computer
+- added BoosterScriptableObject for paying once per day for marketing to increase customer rate
+- added UIShopCategoryHelper script so you don't have to update your UIShopComputer categories
+  anymore with references to all other categories game objects when adding new ones
+- added category string to PurchasableScriptableObject, allowing to display purchasables under
+  different category headers on the shop, with a fallback to no categories as it was before
+- changed: products requiring licenses are not hidden but shown with their unlock message
+- changed: products locked behind unpurchased licenses are not selected by customers anymore
+- changed: store entry and walls have been replaced with automatic sliding doors
+- fixed DailyEventSystem sometimes invoking multiple events at the same time
+- fixed CustomerTrafficChangeEvent not remembering previousTraffic after saving and loading
+- fixed modified values of CustomerSystem not getting saved by the SaveGameSystem
+- fixed licenses and expansions getting unlocked when not having reached the required level
+- fixed not being able to place storages when their cells are distributed over multiple grids
+
+v1.0.1
+- fixed duplicated storages when trying to pickup and place storages very quickly
+- fixed storages occupying grid tiles wrongly after rotating and placing picked up storage
+
+v1.0.0
+- added mobile support with walk+view joysticks as well as up to 4 buttons (UIActionButton)
+- added AudioSystem pooling with various sound effects and when interacting with game objects
+- added UI notifications for displaying various important and also daily events in the shop
+- added floating text pooling to prominently display changes in experience and money in the UI
+- added customers walking around in the Intro scene for some more vibrant background ambience
+- fixed reference to products in placements not being temporarily removed while moving storage
+- fixed being able to still interact with products while the pause menu was shown
+- fixed NRE when reaching final level by overshooting max XP, now XP slider gets disabled
+- more smaller fixes like slightly modified rects on some UI elements and their prefabs
+- renamed UIActionControl component for showing keyboard action hints to UIActionHint
+- StorageSystem: fixed Rotate action not being displayed in the UI with an UIActionHint
+- DeliverySystem: fixed CanPurchase not correctly considering the packaging amount
+
+v0.9.3
+- added speech bubble to customers showing the reason of their unhappy reaction
+- fixed incorrect hand rotations on customer models on RaiseHand and Question animation
+- StoreDatabase: changed losing a level with decreasing experience, now disabled by default
+- PlayerController: fixed unexpected camera jump after setting mouse cursor to be locked again
+- UIGame: fixed slider displaying level experience not taking level bounds into account
+- UIStats: changed earned experience only displaying positive values, not experience lost
+- UIStats: fixed taking customers into account who tried to enter after shop was closed
+- Build Settings: fixed assignment of wrong game scene when URP sample assets are present
+
+v0.9.2
+- added prefabs of all systems and database game objects to easily manage them across scenes
+- added editor script for updating the list of available ScriptableObjects on ItemDatabase
+- changed all database and system scripts to mostly have public static methods
+- changed the GetInstance() method returning the script instance to the Singleton Instance pattern
+- Customer: added happy flag. They will only stay happy when they find and pay for all products
+- Customer: added more unhappy reasons, in case they do not find a product or it is too expensive
+- Customer: for multiple reasons to be unhappy, the players experience will only decrease once
+- CashDesk: although prevented by default, added unhappy Customer in case less change was given
+- UIGame: added Input listener in order to allow closing the Price Window by pressing Escape
+- UIGame: fixed message not being visible at day end when it was faded out previously
+- UIGame: fixed menu showing up when Price Window was active with no way to close it anymore
+- UIShopCategory: fixed issue with old scene references and unlocking products on level up
+- DayCycle: changed lengthDaySeconds to define the duration of the opening hours, not the full day
+- DayCycle: fixed time passing very slowly when running the game with framerates above ~120
+- DailyEvent: fixed buy price increasing event skipping products from the current level
+
+v0.9.1
+- Customers: added wandering behavior when queueing up on an already occupied CashDesk
+- Customers: fixed NRE when queuing up on an already occupied CashDesk with no queue positions left
+- Computer UI: fixed UIShopItems not correctly taking level requirements into account when unlocking
+- StorageSystem: fixed box not containing tools or label when picking up existing StorageObject
+- StorageSystem: fixed initial product rotations in StorageObject when loading existing save game
+- PackageObject: fixed initial product rotations in box when loading existing save game
+
+v0.9.0
+- Preview Release

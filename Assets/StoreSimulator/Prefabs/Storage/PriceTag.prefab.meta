@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5a46e60167b8cff48a18f0b04d9e590e
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Storage/PriceTag.prefab
+  uploadId: 821062

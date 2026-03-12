@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: aae5f684b914c0b468fb4924065cd0b5
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Databases/StoreDatabase.prefab
+  uploadId: 821062

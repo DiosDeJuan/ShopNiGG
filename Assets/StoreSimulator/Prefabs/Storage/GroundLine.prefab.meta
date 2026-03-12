@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7381b71f6654649568548c40880bc3ec
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Storage/GroundLine.prefab
+  uploadId: 821062

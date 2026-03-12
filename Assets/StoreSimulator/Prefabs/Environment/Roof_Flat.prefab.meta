@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: cbbf86f9b51c9af43a14aa8bd2aa08a2
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Environment/Roof_Flat.prefab
+  uploadId: 821062

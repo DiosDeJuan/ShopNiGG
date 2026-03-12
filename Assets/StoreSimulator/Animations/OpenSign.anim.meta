@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4a0f26a988b8c4077870fe272be0be22
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Animations/OpenSign.anim
+  uploadId: 821062

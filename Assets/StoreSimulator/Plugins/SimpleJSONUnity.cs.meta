@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8e04ab8b52df7a34d956c728db43c7ff
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Plugins/SimpleJSONUnity.cs
+  uploadId: 821062

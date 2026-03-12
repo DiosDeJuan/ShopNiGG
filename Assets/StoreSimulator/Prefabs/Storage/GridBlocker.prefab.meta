@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b811beaeedf7943d59cfda81fe6f3ff3
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Storage/GridBlocker.prefab
+  uploadId: 821062

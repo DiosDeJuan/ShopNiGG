@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0d5dcdff344d5a442b51a013d4d5da2b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Settings/URP-Performant-Renderer.asset
+  uploadId: 821062

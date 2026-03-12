@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 24ee9ed7390bbf348b4ec4739b7278f6
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Storage/Shelf_B.prefab
+  uploadId: 821062

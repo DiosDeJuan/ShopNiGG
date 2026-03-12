@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9aa2eb7daa5f4a24fa5e4018a480b00e
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Environment/Road_Lamp.prefab
+  uploadId: 821062

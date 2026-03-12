@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f42dc94e11189d0408010ae5474f5540
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Store/OpenSign.prefab
+  uploadId: 821062

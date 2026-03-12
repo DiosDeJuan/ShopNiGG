@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b1663ffe55dff7b4a9468c7ca6205694
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Scenes/Intro.unity
+  uploadId: 821062

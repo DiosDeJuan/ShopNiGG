@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 44016d40d49652c4ab8827731dce5ba2
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Materials/GridPlacement.mat
+  uploadId: 821062

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0dec4f5f0e90643e0aca0f423fd270a4
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309463
+  packageName: Store Simulator - Supermarket Game Template
+  packageVersion: 1.2.0
+  assetPath: Assets/StoreSimulator/Prefabs/Environment/Roof_Corner2.prefab
+  uploadId: 821062
