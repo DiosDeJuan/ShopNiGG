@@ -22,7 +22,7 @@ namespace FLOBUK.StoreSimulator
         {
             Gizmos.color = gizmoColor;
             Gizmos.DrawSphere(transform.position, gizmoRadius);
-            Gizmos.DrawLine(transform.position, transform.position + transform.forward);
+            Gizmos.DrawLine(transform.position, transform.position + transform.forward * gizmoRadius * 2f);
         }
 
 #if UNITY_EDITOR

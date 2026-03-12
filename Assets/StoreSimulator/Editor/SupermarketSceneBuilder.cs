@@ -21,6 +21,7 @@
  *  ─────────────────────────────────────────────────────────────────────── */
 
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -606,6 +607,22 @@ namespace FLOBUK.StoreSimulator
             return (GameObject)PrefabUtility.InstantiatePrefab(prefab);
         }
 
+        // Cache materials by colour to avoid creating duplicate instances.
+        static readonly Dictionary<Color, Material> _materialCache = new Dictionary<Color, Material>();
+
+        static Material GetOrCreateMaterial(Color color)
+        {
+            if (_materialCache.TryGetValue(color, out Material cached))
+                return cached;
+
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            Material mat = shader != null ? new Material(shader) : new Material(Shader.Find("Standard"));
+            mat.color = color;
+            mat.name = "Placeholder_" + ColorUtility.ToHtmlStringRGB(color);
+            _materialCache[color] = mat;
+            return mat;
+        }
+
         static void CreatePlaceholderCube(Transform parent, string name,
             Vector3 position, Vector3 scale, string description, Color color)
         {
@@ -616,17 +633,10 @@ namespace FLOBUK.StoreSimulator
             go.transform.localScale = scale;
             go.isStatic = true;
 
-            // Apply colour via a simple unlit material
+            // Apply colour via a shared material per colour
             Renderer rend = go.GetComponent<Renderer>();
             if (rend != null)
-            {
-                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                if (mat != null)
-                {
-                    mat.color = color;
-                    rend.sharedMaterial = mat;
-                }
-            }
+                rend.sharedMaterial = GetOrCreateMaterial(color);
 
             PlaceholderMarker marker = go.AddComponent<PlaceholderMarker>();
             marker.description = description;
