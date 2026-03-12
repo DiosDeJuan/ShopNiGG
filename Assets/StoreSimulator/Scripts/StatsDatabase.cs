@@ -44,6 +44,21 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public int customersUnhappy { get; private set; }
 
+        /// <summary>
+        /// Cache for count of shoplifters caught during the day. (RQF20)
+        /// </summary>
+        public int shopliftersCaught { get; private set; }
+
+        /// <summary>
+        /// Cache for count of shoplifters who escaped during the day. (RQF20)
+        /// </summary>
+        public int shopliftersEscaped { get; private set; }
+
+        /// <summary>
+        /// Cache for total money lost to shoplifters during the day. (RQF20)
+        /// </summary>
+        public long moneyLostToTheft { get; private set; }
+
 
         //initialize references
         void Awake()
@@ -54,6 +69,8 @@ namespace FLOBUK.StoreSimulator
             StoreDatabase.onExperienceUpdate += OnExperienceUpdate;
             DayCycleSystem.onDayLoaded += OnDayLoaded;
             CustomerSystem.onCustomerLeft += OnCustomerLeft;
+            ShoplifterSystem.onShoplifterCaught += OnShoplifterCaught;
+            ShoplifterSystem.onShoplifterEscaped += OnShoplifterEscaped;
         }
 
 
@@ -63,6 +80,8 @@ namespace FLOBUK.StoreSimulator
             moneyEarned = moneySpent = 0;
             xpEarned = 0;
             customersHappy = customersUnhappy = 0;
+            shopliftersCaught = shopliftersEscaped = 0;
+            moneyLostToTheft = 0;
         }
 
 
@@ -92,6 +111,21 @@ namespace FLOBUK.StoreSimulator
         }
 
 
+        //subscribed to shoplifter caught event (RQF20)
+        private void OnShoplifterCaught(ShoplifterType type)
+        {
+            shopliftersCaught++;
+        }
+
+
+        //subscribed to shoplifter escaped event (RQF20)
+        private void OnShoplifterEscaped(long stolenValue)
+        {
+            shopliftersEscaped++;
+            moneyLostToTheft += stolenValue;
+        }
+
+
         /// <summary>
         /// Reads component data that should be persisted and returns it as a JSONNode. 
         /// </summary>
@@ -104,6 +138,9 @@ namespace FLOBUK.StoreSimulator
             data["xpEarned"] = xpEarned;
             data["customersHappy"] = customersHappy;
             data["customersUnhappy"] = customersUnhappy;
+            data["shopliftersCaught"] = shopliftersCaught;
+            data["shopliftersEscaped"] = shopliftersEscaped;
+            data["moneyLostToTheft"] = moneyLostToTheft;
             
             return data;
         }
@@ -122,6 +159,9 @@ namespace FLOBUK.StoreSimulator
             xpEarned = data["xpEarned"].AsLong;
             customersHappy = data["customersHappy"].AsInt;
             customersUnhappy = data["customersUnhappy"].AsInt;
+            shopliftersCaught = data["shopliftersCaught"].AsInt;
+            shopliftersEscaped = data["shopliftersEscaped"].AsInt;
+            moneyLostToTheft = data["moneyLostToTheft"].AsLong;
         }
 
 
@@ -132,6 +172,8 @@ namespace FLOBUK.StoreSimulator
             StoreDatabase.onExperienceUpdate -= OnExperienceUpdate;
             DayCycleSystem.onDayLoaded -= OnDayLoaded;
             CustomerSystem.onCustomerLeft -= OnCustomerLeft;
+            ShoplifterSystem.onShoplifterCaught -= OnShoplifterCaught;
+            ShoplifterSystem.onShoplifterEscaped -= OnShoplifterEscaped;
         }
     }
 }

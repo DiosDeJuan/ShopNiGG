@@ -93,6 +93,15 @@ namespace FLOBUK.StoreSimulator
             data["TutorialSystem"] = TutorialSystem.Instance.SaveToJSON();
             data["StatsDatabase"] = StatsDatabase.Instance.SaveToJSON();
 
+            if (EntrepreneurTreeSystem.Instance != null)
+                data["EntrepreneurTreeSystem"] = EntrepreneurTreeSystem.Instance.SaveToJSON();
+            if (EmployeeSystem.Instance != null)
+                data["EmployeeSystem"] = EmployeeSystem.Instance.SaveToJSON();
+            if (SecuritySystem.Instance != null)
+                data["SecuritySystem"] = SecuritySystem.Instance.SaveToJSON();
+            if (ShoplifterSystem.Instance != null)
+                data["ShoplifterSystem"] = ShoplifterSystem.Instance.SaveToJSON();
+
             byte[] dataAsBytes = Encoding.ASCII.GetBytes(data.ToString());
             try { File.WriteAllBytes(Application.persistentDataPath + "/" + fileName + fileExt, dataAsBytes); }
             catch (Exception) { }
@@ -158,6 +167,15 @@ namespace FLOBUK.StoreSimulator
             CustomerSystem.Instance.LoadFromJSON(gameData["CustomerSystem"]);
             TutorialSystem.Instance.LoadFromJSON(gameData["TutorialSystem"]);
             StatsDatabase.Instance.LoadFromJSON(gameData["StatsDatabase"]);
+
+            if (EntrepreneurTreeSystem.Instance != null)
+                EntrepreneurTreeSystem.Instance.LoadFromJSON(gameData["EntrepreneurTreeSystem"]);
+            if (EmployeeSystem.Instance != null)
+                EmployeeSystem.Instance.LoadFromJSON(gameData["EmployeeSystem"]);
+            if (SecuritySystem.Instance != null)
+                SecuritySystem.Instance.LoadFromJSON(gameData["SecuritySystem"]);
+            if (ShoplifterSystem.Instance != null)
+                ShoplifterSystem.Instance.LoadFromJSON(gameData["ShoplifterSystem"]);
             
             //notify subscribed scripts of data update
             dataLoadEvent?.Invoke();
