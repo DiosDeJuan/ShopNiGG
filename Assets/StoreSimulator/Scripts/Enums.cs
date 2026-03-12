@@ -151,4 +151,28 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         Floor
     }
+
+
+    /// <summary>
+    /// Supported document types for upload.
+    /// </summary>
+    public enum DocumentType
+    {
+        /// <summary>
+        /// Binary save data file.
+        /// </summary>
+        SaveData,
+        /// <summary>
+        /// JSON formatted data file.
+        /// </summary>
+        Json,
+        /// <summary>
+        /// Plain text file.
+        /// </summary>
+        Text,
+        /// <summary>
+        /// Comma-separated values file.
+        /// </summary>
+        Csv
+    }
 }
