@@ -102,8 +102,14 @@ namespace FLOBUK.StoreSimulator
             characterController = GetComponent<CharacterController>();
 
             #if UNITY_ANDROID || UNITY_IOS
-                for(int i = 0; i < joysticks.Length; i++)
-                    joysticks[i].SetActive(true);
+                if(joysticks != null)
+                {
+                    for(int i = 0; i < joysticks.Length; i++)
+                    {
+                        if(joysticks[i] != null)
+                            joysticks[i].SetActive(true);
+                    }
+                }
             #endif
 
             PlayerInput playerInput = PlayerInput.GetPlayerByIndex(0);
@@ -120,7 +126,10 @@ namespace FLOBUK.StoreSimulator
         //initialize variables
         void Start()
         {
-            transform.LookAt(StoreDatabase.Instance.storeEntry.position + Vector3.up);
+            if(StoreDatabase.Instance != null && StoreDatabase.Instance.storeEntry != null)
+            {
+                transform.LookAt(StoreDatabase.Instance.storeEntry.position + Vector3.up);
+            }
         }
 
 
@@ -156,6 +165,7 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public static Transform GetCameraTransform()
         {
+            if(Instance == null) return null;
             return Instance.cameraTransform;
         }
 
@@ -165,7 +175,8 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public static void SetCameraRotation(Quaternion newRotation)
         {
-            Instance.cameraRotation = newRotation.eulerAngles;
+            if(Instance != null)
+                Instance.cameraRotation = newRotation.eulerAngles;
         }
 
 
@@ -174,6 +185,8 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public static void SetMovementState(MovementState state, bool lockCursor)
         {
+            if(Instance == null) return;
+
             if (Cursor.lockState == CursorLockMode.None && lockCursor == true)
             {
                 Mouse.current.WarpCursorPosition(new Vector2(Screen.width / 2, Screen.height / 2));
@@ -181,10 +194,16 @@ namespace FLOBUK.StoreSimulator
             }
 
             #if UNITY_ANDROID || UNITY_IOS
-                for(int i = 0; i < Instance.joysticks.Length; i++)
-                    Instance.joysticks[i].SetActive(state == MovementState.All);
-                if (state == MovementState.RotationOnly)
-                    Instance.joysticks[1].SetActive(true);
+                if(Instance.joysticks != null)
+                {
+                    for(int i = 0; i < Instance.joysticks.Length; i++)
+                    {
+                        if(Instance.joysticks[i] != null)
+                            Instance.joysticks[i].SetActive(state == MovementState.All);
+                    }
+                    if (state == MovementState.RotationOnly && Instance.joysticks.Length > 1 && Instance.joysticks[1] != null)
+                        Instance.joysticks[1].SetActive(true);
+                }
             #endif
 
             Cursor.lockState = lockCursor ? CursorLockMode.Locked : CursorLockMode.None;
@@ -198,6 +217,8 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public void Carry(PackageObject package)
         {
+            if(package == null || hands == null) return;
+
             handsPackage = package;
             handsPackage.GetComponent<Rigidbody>().isKinematic = true;
             handsPackage.GetComponent<Animation>().Play("OpenPackage");
@@ -211,6 +232,8 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public void Drop(bool withDestroy = false)
         {
+            if(handsPackage == null) return;
+
             if (withDestroy)
                 Destroy(handsPackage.gameObject);
             else
@@ -222,7 +245,8 @@ namespace FLOBUK.StoreSimulator
 
                 Rigidbody rigidbody = handsPackage.GetComponent<Rigidbody>();
                 rigidbody.isKinematic = false;
-                rigidbody.AddForce(hands.forward * 10, ForceMode.Impulse);
+                if(hands != null)
+                    rigidbody.AddForce(hands.forward * 10, ForceMode.Impulse);
             }
 
             handsPackage = null;
@@ -267,6 +291,8 @@ namespace FLOBUK.StoreSimulator
         //rotation calculations
         private void ApplyRotation()
         {
+            if(cameraTransform == null) return;
+
             //after locking the mouse cursor back to the screen center on desktop
             //we need to skip the first frame with non-zero mouse delta values
             //since otherwise Unity generates a high delta resulting in a camera jump
