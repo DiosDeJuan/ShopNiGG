@@ -69,6 +69,8 @@ namespace FLOBUK.StoreSimulator
 
         //reference to the underlying CharacterController component
         private CharacterController characterController;
+        //cached PlayerInput reference for subscription cleanup
+        private PlayerInput playerInput;
         //currently allowed movement states
         private MovementState movementState = MovementState.All;
         //previous movement state before changing it
@@ -126,14 +128,6 @@ namespace FLOBUK.StoreSimulator
                 }
             #endif
 
-            PlayerInput playerInput = PlayerInput.GetPlayerByIndex(0);
-            if(playerInput != null)
-            {
-                #if UNITY_6000_0_OR_NEWER
-                    playerInput.actions.FindActionMap("UI").Disable();
-                #endif
-                playerInput.onActionTriggered += OnAction;
-            }
         }
 
 
@@ -143,6 +137,21 @@ namespace FLOBUK.StoreSimulator
             if(StoreDatabase.Instance != null && StoreDatabase.Instance.storeEntry != null)
             {
                 transform.LookAt(StoreDatabase.Instance.storeEntry.position + Vector3.up);
+            }
+
+            //subscribe to player input here (Start) so that PlayerInput.Awake() has already
+            //registered itself before we try to retrieve it via GetPlayerByIndex
+            playerInput = PlayerInput.GetPlayerByIndex(0);
+            if(playerInput != null)
+            {
+                #if UNITY_6000_0_OR_NEWER
+                    playerInput.actions.FindActionMap("UI").Disable();
+                #endif
+                playerInput.onActionTriggered += OnAction;
+            }
+            else
+            {
+                Debug.LogError("PlayerController: no PlayerInput found. Movement and interaction will not work.");
             }
         }
 
@@ -362,6 +371,14 @@ namespace FLOBUK.StoreSimulator
             {
                 gravityVelocity += jumpForce;
             }
+        }
+
+
+        //unsubscribe from player input on destroy
+        void OnDestroy()
+        {
+            if(playerInput != null)
+                playerInput.onActionTriggered -= OnAction;
         }
     }
 }
