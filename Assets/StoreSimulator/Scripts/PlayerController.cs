@@ -101,6 +101,16 @@ namespace FLOBUK.StoreSimulator
 
             characterController = GetComponent<CharacterController>();
 
+            // Validate required inspector fields
+            if(cameraTransform == null)
+            {
+                Debug.LogError("PlayerController: cameraTransform is not assigned in the inspector!");
+            }
+            if(hands == null)
+            {
+                Debug.LogError("PlayerController: hands transform is not assigned in the inspector!");
+            }
+
             #if UNITY_ANDROID || UNITY_IOS
                 if(joysticks != null)
                 {
@@ -109,6 +119,10 @@ namespace FLOBUK.StoreSimulator
                         if(joysticks[i] != null)
                             joysticks[i].SetActive(true);
                     }
+                }
+                else
+                {
+                    Debug.LogWarning("PlayerController: joysticks array is not assigned in the inspector. Mobile controls will not be available.");
                 }
             #endif
 
@@ -201,6 +215,7 @@ namespace FLOBUK.StoreSimulator
                         if(Instance.joysticks[i] != null)
                             Instance.joysticks[i].SetActive(state == MovementState.All);
                     }
+                    // Enable view joystick for RotationOnly mode (if available)
                     if (state == MovementState.RotationOnly && Instance.joysticks.Length > 1 && Instance.joysticks[1] != null)
                         Instance.joysticks[1].SetActive(true);
                 }
