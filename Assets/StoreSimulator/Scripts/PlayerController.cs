@@ -106,10 +106,14 @@ namespace FLOBUK.StoreSimulator
                     joysticks[i].SetActive(true);
             #endif
 
-            #if UNITY_6000_0_OR_NEWER
-                PlayerInput.GetPlayerByIndex(0).actions.FindActionMap("UI").Disable();
-            #endif
-            PlayerInput.GetPlayerByIndex(0).onActionTriggered += OnAction;
+            PlayerInput playerInput = PlayerInput.GetPlayerByIndex(0);
+            if(playerInput != null)
+            {
+                #if UNITY_6000_0_OR_NEWER
+                    playerInput.actions.FindActionMap("UI").Disable();
+                #endif
+                playerInput.onActionTriggered += OnAction;
+            }
         }
 
 
