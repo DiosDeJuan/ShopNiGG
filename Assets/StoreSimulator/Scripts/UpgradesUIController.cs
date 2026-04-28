@@ -2,53 +2,43 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
 
 namespace FLOBUK.StoreSimulator
 {
     /// <summary>
-    /// Bridges the Entrepreneur Skill Tree system to the existing "UPGRADES" tab inside
-    /// UIShopDesktop. Builds the entire tree UI programmatically at runtime so no prefab
-    /// modifications are needed.
-    ///
-    /// HOW TO USE:
-    ///   1. In your Game scene, create an empty GameObject (e.g. "UpgradesUIController").
-    ///   2. Add this component to it.
-    ///   3. Optionally assign the shopDesktop field in the Inspector for a direct reference.
-    ///      If left empty, the controller finds UIShopDesktop automatically.
-    ///   4. Ensure EntrepreneurTreeSystem exists somewhere in the scene (or add it to the
-    ///      same object). It will be created automatically if missing.
-    ///   5. Press Play. The UPGRADES tab on the in-game computer now shows the tree.
+    /// Integrates the Entrepreneur Tree into the existing computer UPGRADES flow.
+    /// Keeps access to the original Expansions panel and provides robust fallback lookup.
     /// </summary>
     public class UpgradesUIController : MonoBehaviour
     {
-        // ─── Inspector ────────────────────────────────────────────────────────────
-        /// <summary>
-        /// Optional: drag the UIShopDesktop prefab instance here.
-        /// If null, the controller searches the scene automatically.
-        /// </summary>
-        public UIShopDesktop shopDesktop;
+        private const string LOG_PREFIX = "[EntrepreneurTree] ";
 
-        // ─── Colours ─────────────────────────────────────────────────────────────
-        private static readonly Color COL_BG_PANEL   = new Color(0.07f, 0.11f, 0.17f, 1.00f);
-        private static readonly Color COL_BG_HEADER  = new Color(0.04f, 0.07f, 0.13f, 1.00f);
-        private static readonly Color COL_BG_INFO    = new Color(0.05f, 0.09f, 0.15f, 1.00f);
-        private static readonly Color COL_BG_SCROLL  = new Color(0.03f, 0.06f, 0.10f, 1.00f);
+        [Header("Optional Inspector References")]
+        public UIShopDesktop shopDesktop;
+        public Button upgradesButton;
+        public GameObject upgradesRootPanel;
+        public GameObject originalExpansionsPanel;
+        public Transform treeRootParent;
+
+        private static readonly Color COL_BG_PANEL = new Color(0.07f, 0.11f, 0.17f, 1.00f);
+        private static readonly Color COL_BG_HEADER = new Color(0.04f, 0.07f, 0.13f, 1.00f);
+        private static readonly Color COL_BG_INFO = new Color(0.05f, 0.09f, 0.15f, 1.00f);
+        private static readonly Color COL_BG_SCROLL = new Color(0.03f, 0.06f, 0.10f, 1.00f);
         private static readonly Color COL_BTN_UNLOCK = new Color(0.16f, 0.66f, 0.30f, 1.00f);
         private static readonly Color COL_BTN_LOCKED = new Color(0.28f, 0.30f, 0.35f, 1.00f);
         private static readonly Color COL_TEXT_WHITE = new Color(0.90f, 0.92f, 0.96f, 1.00f);
-        private static readonly Color COL_TEXT_DIM   = new Color(0.50f, 0.55f, 0.60f, 1.00f);
-        private static readonly Color COL_SEPARATOR  = new Color(0.15f, 0.20f, 0.30f, 1.00f);
+        private static readonly Color COL_TEXT_DIM = new Color(0.50f, 0.55f, 0.60f, 1.00f);
+        private static readonly Color COL_SEPARATOR = new Color(0.15f, 0.20f, 0.30f, 1.00f);
 
-        // ─── Layout constants ─────────────────────────────────────────────────────
-        private const float NODE_W      = 150f;
-        private const float NODE_H      = 60f;
-        private const float H_SPACING   = 180f;  // column spacing
-        private const float V_SPACING   = 130f;  // row spacing
-        private const float CONTENT_PAD = 120f;  // padding around the tree
+        private const float NODE_W = 165f;
+        private const float NODE_H = 66f;
+        private const float H_SPACING = 210f;
+        private const float V_SPACING = 128f;
+        private const float CONTENT_PAD = 110f;
 
-        // ─── Runtime UI references ────────────────────────────────────────────────
+        private GameObject treeRoot;
+        private RectTransform treeContentPanel;
         private TMP_Text pointsLabel;
         private TMP_Text infoNameLabel;
         private TMP_Text infoDescLabel;
@@ -61,243 +51,310 @@ namespace FLOBUK.StoreSimulator
         private RectTransform nodesLayer;
         private RectTransform linesLayer;
         private RectTransform contentArea;
+        private Button treeTabButton;
+        private Button expansionsTabButton;
+        private Button expansionsReturnButton;
 
-        // ─── State ────────────────────────────────────────────────────────────────
+        private bool initialized;
         private EntrepreneurTreeNodeUI selectedNodeUI;
-        private Dictionary<string, EntrepreneurTreeNodeUI> nodeUIs =
-            new Dictionary<string, EntrepreneurTreeNodeUI>();
-        private List<EntrepreneurTreeConnectionLineUI> lineUIs =
-            new List<EntrepreneurTreeConnectionLineUI>();
-        private Dictionary<string, Vector2> nodePositions =
-            new Dictionary<string, Vector2>();
+        private readonly Dictionary<string, EntrepreneurTreeNodeUI> nodeUIs = new Dictionary<string, EntrepreneurTreeNodeUI>();
+        private readonly List<EntrepreneurTreeConnectionLineUI> lineUIs = new List<EntrepreneurTreeConnectionLineUI>();
+        private readonly Dictionary<string, Vector2> nodePositions = new Dictionary<string, Vector2>();
+        private Coroutine messageCoroutine;
 
-        // ─── Lifecycle ────────────────────────────────────────────────────────────
+        void Awake()
+        {
+            EnsureTreeSystemExists();
+            ResolveReferences();
+        }
+
         void Start()
         {
-            StartCoroutine(BuildAfterFrame());
+            StartCoroutine(InitializeAfterFrame());
         }
-
-
-        //wait one frame to ensure all other systems (UIShopDesktop, EntrepreneurTreeSystem) have run Awake+Start
-        private IEnumerator BuildAfterFrame()
-        {
-            yield return null;
-
-            EnsureTreeSystemExists();
-
-            if (shopDesktop == null)
-                shopDesktop = FindObjectOfType<UIShopDesktop>();
-
-            if (shopDesktop == null)
-            {
-                Debug.LogWarning("[UpgradesUIController] UIShopDesktop not found in scene. Tree UI cannot be built.");
-                yield break;
-            }
-
-            Transform categories = FindDeepByName(shopDesktop.transform, "Categories");
-            if (categories == null)
-            {
-                Debug.LogWarning("[UpgradesUIController] Could not find 'Categories' container inside UIShopDesktop.");
-                yield break;
-            }
-
-            //build the tree panel as a new direct child of Categories
-            GameObject treeRoot = BuildTreePanel(categories);
-
-            //override the "Button - Upgrades" to show our panel instead of "Expansions"
-            WireUpgradesButton(shopDesktop.transform, categories, treeRoot);
-
-            //build node and line geometry
-            CalculateNodePositions();
-            BuildNodes();
-            BuildConnectionLines();
-            ResizeContentArea();
-
-            //subscribe to game events
-            EntrepreneurTreeSystem.onProgressPointsChanged += OnPointsChanged;
-            EntrepreneurTreeSystem.onNodeUnlocked += OnNodeUnlocked;
-
-            //initial UI refresh
-            RefreshAllNodeVisuals();
-            UpdatePointsLabel();
-            ShowPlaceholderInfo();
-        }
-
 
         void OnDestroy()
         {
-            EntrepreneurTreeSystem.onProgressPointsChanged -= OnPointsChanged;
+            EntrepreneurTreeSystem.OnProgressPointsChanged -= OnPointsChanged;
             EntrepreneurTreeSystem.onNodeUnlocked -= OnNodeUnlocked;
         }
 
-        // ─── Panel construction ────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Creates the entire EntrepreneurTreeRoot panel hierarchy as a direct child of
-        /// the given categories transform. Returns the root GameObject.
-        /// </summary>
-        private GameObject BuildTreePanel(Transform categories)
+        private IEnumerator InitializeAfterFrame()
         {
-            // Root panel - fills Categories area
-            GameObject root = CreatePanel(categories, "EntrepreneurTreeRoot",
+            yield return null;
+
+            if (initialized || !ValidateReferences())
+                yield break;
+
+            treeRoot = FindOrCreateTreeRoot();
+            if (treeRoot == null)
+            {
+                Debug.LogWarning(LOG_PREFIX + "No se pudo crear/encontrar EntrepreneurTreeRoot.");
+                yield break;
+            }
+
+            BuildTreeUIIfNeeded(treeRoot);
+            BuildGraphIfNeeded();
+            WireUpgradesButton();
+            WireSubtabsAndFallbacks();
+
+            EntrepreneurTreeSystem.OnProgressPointsChanged -= OnPointsChanged;
+            EntrepreneurTreeSystem.onNodeUnlocked -= OnNodeUnlocked;
+            EntrepreneurTreeSystem.OnProgressPointsChanged += OnPointsChanged;
+            EntrepreneurTreeSystem.onNodeUnlocked += OnNodeUnlocked;
+
+            RefreshAllNodeVisuals();
+            RefreshAllLines();
+            UpdatePointsLabel();
+            ShowPlaceholderInfo();
+            initialized = true;
+        }
+
+        private void ResolveReferences()
+        {
+            if (shopDesktop == null)
+            {
+                shopDesktop = FindObjectOfType<UIShopDesktop>();
+                if (shopDesktop == null)
+                    Debug.LogWarning(LOG_PREFIX + "No se encontró UIShopDesktop (fallback FindObjectOfType falló).");
+                else
+                    Debug.Log(LOG_PREFIX + "UIShopDesktop resuelto por fallback automático.");
+            }
+
+            if (upgradesRootPanel == null && shopDesktop != null)
+            {
+                UIShopCategoryHelper helper = shopDesktop.GetComponentInChildren<UIShopCategoryHelper>(true);
+                if (helper != null)
+                {
+                    upgradesRootPanel = helper.gameObject;
+                    Debug.Log(LOG_PREFIX + "Usando fallback: contenedor UPGRADES = UIShopCategoryHelper.");
+                }
+            }
+
+            if (treeRootParent == null && upgradesRootPanel != null)
+                treeRootParent = upgradesRootPanel.transform;
+
+            if (upgradesButton == null && shopDesktop != null)
+                upgradesButton = FindButtonByName(shopDesktop.transform, "Button - Upgrades");
+
+            if (originalExpansionsPanel == null && upgradesRootPanel != null)
+                originalExpansionsPanel = ResolveOriginalExpansionsPanel(upgradesRootPanel.transform);
+        }
+
+        private bool ValidateReferences()
+        {
+            if (shopDesktop == null)
+            {
+                Debug.LogWarning(LOG_PREFIX + "No se encontró UIShopDesktop. Abortando inicialización del árbol.");
+                return false;
+            }
+
+            if (upgradesRootPanel == null)
+            {
+                Debug.LogWarning(LOG_PREFIX + "No se encontró el contenedor de UPGRADES.");
+                return false;
+            }
+
+            if (treeRootParent == null)
+            {
+                Debug.LogWarning(LOG_PREFIX + "No se encontró treeRootParent. Usando fallback con contenedor UPGRADES.");
+                treeRootParent = upgradesRootPanel.transform;
+            }
+
+            if (upgradesButton == null)
+                Debug.LogWarning(LOG_PREFIX + "No se encontró Button - Upgrades. Debe asignarse manualmente en Inspector.");
+
+            if (originalExpansionsPanel == null)
+                Debug.LogWarning(LOG_PREFIX + "No se encontró panel de Expansions. Se mantiene árbol funcional pero sin subtab Expansiones.");
+
+            return true;
+        }
+
+        private GameObject ResolveOriginalExpansionsPanel(Transform root)
+        {
+            UIShopCategory[] categories = root.GetComponentsInChildren<UIShopCategory>(true);
+            foreach (UIShopCategory category in categories)
+            {
+                if (category != null && category.purchasable is ExpansionScriptableObject)
+                    return category.gameObject;
+            }
+
+            Transform namedFallback = FindDeepByName(root, "Expansions");
+            if (namedFallback != null)
+            {
+                Debug.Log(LOG_PREFIX + "Usando fallback por nombre para Expansions.");
+                return namedFallback.gameObject;
+            }
+
+            return null;
+        }
+
+        private GameObject FindOrCreateTreeRoot()
+        {
+            Transform existing = FindDeepByName(treeRootParent, "EntrepreneurTreeRoot");
+            if (existing != null)
+                return existing.gameObject;
+
+            GameObject root = CreatePanel(treeRootParent, "EntrepreneurTreeRoot",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, COL_BG_PANEL);
-            root.SetActive(false); // hidden until the Upgrades button is clicked
-
-            RectTransform rootRT = root.GetComponent<RectTransform>();
-
-            // ── Header ─────────────────────────────────────────────────────────
-            GameObject header = CreatePanel(root.transform, "Header",
-                new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0f, -50f), new Vector2(0f, 0f), COL_BG_HEADER);
-
-            // Title
-            TMP_Text title = CreateLabel(header.transform, "TitleLabel",
-                "🌳  Árbol del Emprendedor",
-                new Vector2(0f, 0f), new Vector2(0.65f, 1f),
-                Vector2.zero, Vector2.zero,
-                18f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.MidlineLeft);
-            title.margin = new Vector4(12f, 0, 0, 0);
-
-            // Points display
-            pointsLabel = CreateLabel(header.transform, "PointsLabel",
-                "Puntos disponibles: —",
-                new Vector2(0.65f, 0f), new Vector2(1f, 1f),
-                Vector2.zero, Vector2.zero,
-                13f, FontStyles.Normal, new Color(0.80f, 0.85f, 0.40f, 1f),
-                TextAlignmentOptions.MidlineRight);
-            pointsLabel.margin = new Vector4(0, 0, 12f, 0);
-
-            // Separator line under header
-            CreatePanel(root.transform, "HeaderSeparator",
-                new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0f, -52f), new Vector2(0f, -50f), COL_SEPARATOR);
-
-            // ── Main Area (scroll + info) ───────────────────────────────────────
-            GameObject mainArea = CreatePanel(root.transform, "MainArea",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                new Vector2(0f, 0f), new Vector2(0f, -52f), Color.clear);
-
-            // ── Info Panel (right 32%) ──────────────────────────────────────────
-            GameObject infoPanel = CreatePanel(mainArea.transform, "InfoPanel",
-                new Vector2(0.68f, 0f), new Vector2(1f, 1f),
-                Vector2.zero, Vector2.zero, COL_BG_INFO);
-
-            BuildInfoPanel(infoPanel.transform);
-
-            // Vertical separator
-            CreatePanel(mainArea.transform, "InfoSeparator",
-                new Vector2(0.68f, 0f), new Vector2(0.68f, 1f),
-                new Vector2(-1f, 0f), new Vector2(1f, 0f), COL_SEPARATOR);
-
-            // ── Tree Scroll View (left 68%) ─────────────────────────────────────
-            GameObject scrollArea = CreatePanel(mainArea.transform, "TreeScrollArea",
-                new Vector2(0f, 0f), new Vector2(0.68f, 1f),
-                Vector2.zero, Vector2.zero, COL_BG_SCROLL);
-
-            BuildScrollView(scrollArea.transform);
-
-            // ── Message overlay (bottom of root) ───────────────────────────────
-            messageLabel = CreateLabel(root.transform, "MessageLabel",
-                string.Empty,
-                new Vector2(0f, 0f), new Vector2(0.68f, 0f),
-                new Vector2(0f, 0f), new Vector2(0f, 32f),
-                11f, FontStyles.Italic, new Color(1f, 0.85f, 0.25f, 1f),
-                TextAlignmentOptions.Center);
-            messageLabel.overflowMode = TextOverflowModes.Ellipsis;
-
+            root.SetActive(false);
             return root;
         }
 
+        private void BuildTreeUIIfNeeded(GameObject root)
+        {
+            Transform main = FindDeepByName(root.transform, "MainArea");
+            if (main != null)
+            {
+                CacheExistingUIReferences(root);
+                return;
+            }
+
+            GameObject header = CreatePanel(root.transform, "Header",
+                new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(0f, -54f), new Vector2(0f, 0f), COL_BG_HEADER);
+
+            TMP_Text title = CreateLabel(header.transform, "TitleLabel", "Árbol del Emprendedor",
+                new Vector2(0f, 0f), new Vector2(0.42f, 1f),
+                Vector2.zero, Vector2.zero, 16f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.MidlineLeft);
+            title.margin = new Vector4(12f, 0, 0, 0);
+
+            treeTabButton = CreateTabButton(header.transform, "TreeTabButton", "Árbol",
+                new Vector2(0.43f, 0.16f), new Vector2(0.60f, 0.84f));
+            expansionsTabButton = CreateTabButton(header.transform, "ExpansionsTabButton", "Expansiones",
+                new Vector2(0.61f, 0.16f), new Vector2(0.82f, 0.84f));
+
+            pointsLabel = CreateLabel(header.transform, "PointsLabel", "Puntos disponibles: —",
+                new Vector2(0.82f, 0f), new Vector2(1f, 1f),
+                Vector2.zero, Vector2.zero, 12f, FontStyles.Bold, new Color(0.88f, 0.82f, 0.22f, 1f), TextAlignmentOptions.MidlineRight);
+            pointsLabel.margin = new Vector4(0, 0, 12f, 0);
+
+            CreatePanel(root.transform, "HeaderSeparator",
+                new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(0f, -56f), new Vector2(0f, -54f), COL_SEPARATOR);
+
+            GameObject mainArea = CreatePanel(root.transform, "MainArea",
+                new Vector2(0f, 0f), new Vector2(1f, 1f),
+                new Vector2(0f, 0f), new Vector2(0f, -56f), Color.clear);
+
+            treeContentPanel = CreatePanel(mainArea.transform, "TreeContentPanel",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, Color.clear).GetComponent<RectTransform>();
+
+            GameObject infoPanel = CreatePanel(treeContentPanel, "InfoPanel",
+                new Vector2(0.67f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, COL_BG_INFO);
+            BuildInfoPanel(infoPanel.transform);
+
+            CreatePanel(treeContentPanel, "InfoSeparator",
+                new Vector2(0.67f, 0f), new Vector2(0.67f, 1f),
+                new Vector2(-1f, 0f), new Vector2(1f, 0f), COL_SEPARATOR);
+
+            GameObject scrollArea = CreatePanel(treeContentPanel, "TreeScrollArea",
+                new Vector2(0f, 0f), new Vector2(0.67f, 1f), Vector2.zero, Vector2.zero, COL_BG_SCROLL);
+            BuildScrollView(scrollArea.transform);
+
+            messageLabel = CreateLabel(root.transform, "MessageLabel", string.Empty,
+                new Vector2(0f, 0f), new Vector2(0.67f, 0f),
+                new Vector2(0f, 0f), new Vector2(0f, 30f), 11f, FontStyles.Italic,
+                new Color(1f, 0.82f, 0.20f, 1f), TextAlignmentOptions.Center);
+            messageLabel.overflowMode = TextOverflowModes.Ellipsis;
+
+            WireTreeTabButtons();
+        }
+
+        private void CacheExistingUIReferences(GameObject root)
+        {
+            pointsLabel = FindDeepByName(root.transform, "PointsLabel")?.GetComponent<TMP_Text>();
+            infoNameLabel = FindDeepByName(root.transform, "InfoName")?.GetComponent<TMP_Text>();
+            infoDescLabel = FindDeepByName(root.transform, "InfoDesc")?.GetComponent<TMP_Text>();
+            infoCostLabel = FindDeepByName(root.transform, "InfoCost")?.GetComponent<TMP_Text>();
+            infoReqsLabel = FindDeepByName(root.transform, "InfoReqs")?.GetComponent<TMP_Text>();
+            infoStatusLabel = FindDeepByName(root.transform, "InfoStatus")?.GetComponent<TMP_Text>();
+            messageLabel = FindDeepByName(root.transform, "MessageLabel")?.GetComponent<TMP_Text>();
+            unlockButton = FindDeepByName(root.transform, "UnlockButton")?.GetComponent<Button>();
+            unlockButtonLabel = FindDeepByName(root.transform, "UnlockBtnLabel")?.GetComponent<TMP_Text>();
+            nodesLayer = FindDeepByName(root.transform, "NodesLayer")?.GetComponent<RectTransform>();
+            linesLayer = FindDeepByName(root.transform, "LinesLayer")?.GetComponent<RectTransform>();
+            contentArea = FindDeepByName(root.transform, "ContentArea")?.GetComponent<RectTransform>();
+            treeContentPanel = FindDeepByName(root.transform, "TreeContentPanel")?.GetComponent<RectTransform>();
+            treeTabButton = FindDeepByName(root.transform, "TreeTabButton")?.GetComponent<Button>();
+            expansionsTabButton = FindDeepByName(root.transform, "ExpansionsTabButton")?.GetComponent<Button>();
+
+            if (unlockButton != null)
+            {
+                unlockButton.onClick.RemoveAllListeners();
+                unlockButton.onClick.AddListener(OnUnlockButtonClicked);
+            }
+
+            WireTreeTabButtons();
+        }
 
         private void BuildInfoPanel(Transform parent)
         {
-            float y = 0f;
-            float padX = 14f;
+            const float padX = 14f;
 
-            // Node name
             infoNameLabel = CreateLabel(parent, "InfoName", "Selecciona un nodo",
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0f, -50f), new Vector2(0f, -14f),
-                14f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.TopLeft);
+                new Vector2(0f, -52f), new Vector2(0f, -14f), 14f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.TopLeft);
             infoNameLabel.margin = new Vector4(padX, 0, padX, 0);
             infoNameLabel.enableWordWrapping = true;
 
-            // Separator
             CreatePanel(parent, "Sep1",
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(padX, -52f), new Vector2(-padX, -50f), COL_SEPARATOR);
+                new Vector2(padX, -54f), new Vector2(-padX, -52f), COL_SEPARATOR);
 
-            // Description
             infoDescLabel = CreateLabel(parent, "InfoDesc", string.Empty,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0f, -130f), new Vector2(0f, -56f),
-                11f, FontStyles.Normal, new Color(0.72f, 0.78f, 0.82f, 1f),
-                TextAlignmentOptions.TopLeft);
+                new Vector2(0f, -130f), new Vector2(0f, -58f), 11f, FontStyles.Normal,
+                new Color(0.72f, 0.78f, 0.82f, 1f), TextAlignmentOptions.TopLeft);
             infoDescLabel.margin = new Vector4(padX, 0, padX, 0);
             infoDescLabel.enableWordWrapping = true;
             infoDescLabel.overflowMode = TextOverflowModes.Ellipsis;
 
-            // Cost label
             infoCostLabel = CreateLabel(parent, "InfoCost", string.Empty,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0f, -152f), new Vector2(0f, -132f),
-                11f, FontStyles.Bold, new Color(0.85f, 0.75f, 0.20f, 1f),
-                TextAlignmentOptions.TopLeft);
+                new Vector2(0f, -154f), new Vector2(0f, -132f), 11f, FontStyles.Bold,
+                new Color(0.85f, 0.75f, 0.20f, 1f), TextAlignmentOptions.TopLeft);
             infoCostLabel.margin = new Vector4(padX, 0, padX, 0);
 
-            // Requirements label
             infoReqsLabel = CreateLabel(parent, "InfoReqs", string.Empty,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0f, -240f), new Vector2(0f, -156f),
-                10f, FontStyles.Normal, new Color(0.85f, 0.50f, 0.50f, 1f),
-                TextAlignmentOptions.TopLeft);
+                new Vector2(0f, -244f), new Vector2(0f, -158f), 10f, FontStyles.Normal,
+                new Color(0.85f, 0.50f, 0.50f, 1f), TextAlignmentOptions.TopLeft);
             infoReqsLabel.margin = new Vector4(padX, 0, padX, 0);
             infoReqsLabel.enableWordWrapping = true;
 
-            // Status label
             infoStatusLabel = CreateLabel(parent, "InfoStatus", string.Empty,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0f, -262f), new Vector2(0f, -242f),
-                10f, FontStyles.Italic, new Color(0.50f, 0.80f, 0.55f, 1f),
-                TextAlignmentOptions.TopLeft);
+                new Vector2(0f, -266f), new Vector2(0f, -246f), 10f, FontStyles.Italic,
+                new Color(0.50f, 0.80f, 0.55f, 1f), TextAlignmentOptions.TopLeft);
             infoStatusLabel.margin = new Vector4(padX, 0, padX, 0);
 
-            // Separator above button
             CreatePanel(parent, "Sep2",
                 new Vector2(0f, 0f), new Vector2(1f, 0f),
                 new Vector2(padX, 52f), new Vector2(-padX, 54f), COL_SEPARATOR);
 
-            // Unlock button
             GameObject btnGO = CreatePanel(parent, "UnlockButton",
                 new Vector2(0.1f, 0f), new Vector2(0.9f, 0f),
-                new Vector2(0f, 8f), new Vector2(0f, 46f), COL_BTN_LOCKED).gameObject;
+                new Vector2(0f, 8f), new Vector2(0f, 46f), COL_BTN_LOCKED);
 
-            Button btn = btnGO.AddComponent<Button>();
+            unlockButton = btnGO.AddComponent<Button>();
             Image btnImg = btnGO.GetComponent<Image>();
-            btn.targetGraphic = btnImg;
-            btn.transition = Selectable.Transition.ColorTint;
-
-            ColorBlock cb = btn.colors;
+            unlockButton.targetGraphic = btnImg;
+            unlockButton.transition = Selectable.Transition.ColorTint;
+            ColorBlock cb = unlockButton.colors;
             cb.highlightedColor = new Color(1f, 1f, 1f, 0.25f);
             cb.pressedColor = new Color(0.6f, 0.6f, 0.6f, 0.5f);
-            btn.colors = cb;
+            unlockButton.colors = cb;
 
-            unlockButtonLabel = CreateLabel(btnGO.transform, "UnlockBtnLabel",
-                "Selecciona un nodo",
-                Vector2.zero, Vector2.one,
-                Vector2.zero, Vector2.zero,
-                12f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.Center);
+            unlockButtonLabel = CreateLabel(btnGO.transform, "UnlockBtnLabel", "Selecciona un nodo",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 12f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.Center);
 
-            unlockButton = btn;
             unlockButton.onClick.AddListener(OnUnlockButtonClicked);
         }
 
-
         private void BuildScrollView(Transform parent)
         {
-            // ScrollRect wrapper
-            GameObject scrollViewGO = new GameObject("TreeScrollView",
-                typeof(RectTransform), typeof(Image), typeof(ScrollRect));
+            GameObject scrollViewGO = new GameObject("TreeScrollView", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             scrollViewGO.transform.SetParent(parent, false);
 
             RectTransform scrollRT = scrollViewGO.GetComponent<RectTransform>();
@@ -307,43 +364,35 @@ namespace FLOBUK.StoreSimulator
             scrollRT.offsetMax = Vector2.zero;
 
             scrollViewGO.GetComponent<Image>().color = Color.clear;
-
             ScrollRect scrollRect = scrollViewGO.GetComponent<ScrollRect>();
             scrollRect.horizontal = true;
             scrollRect.vertical = true;
-            scrollRect.scrollSensitivity = 20f;
+            scrollRect.scrollSensitivity = 22f;
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
 
-            // Viewport
-            GameObject viewportGO = new GameObject("Viewport",
-                typeof(RectTransform), typeof(Image), typeof(Mask));
+            GameObject viewportGO = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
             viewportGO.transform.SetParent(scrollViewGO.transform, false);
-
             RectTransform viewportRT = viewportGO.GetComponent<RectTransform>();
             viewportRT.anchorMin = Vector2.zero;
             viewportRT.anchorMax = Vector2.one;
             viewportRT.offsetMin = Vector2.zero;
             viewportRT.offsetMax = Vector2.zero;
             viewportRT.pivot = new Vector2(0f, 1f);
-
             viewportGO.GetComponent<Mask>().showMaskGraphic = false;
-            viewportGO.GetComponent<Image>().color = Color.white; // mask needs a graphic
+            viewportGO.GetComponent<Image>().color = Color.white;
 
-            // Content area
             GameObject contentGO = new GameObject("ContentArea", typeof(RectTransform));
             contentGO.transform.SetParent(viewportGO.transform, false);
-
             contentArea = contentGO.GetComponent<RectTransform>();
             contentArea.anchorMin = new Vector2(0f, 1f);
             contentArea.anchorMax = new Vector2(0f, 1f);
             contentArea.pivot = new Vector2(0f, 1f);
             contentArea.anchoredPosition = Vector2.zero;
-            contentArea.sizeDelta = new Vector2(2200f, 1600f); // will be resized after layout
+            contentArea.sizeDelta = new Vector2(2200f, 1600f);
 
             scrollRect.viewport = viewportRT;
             scrollRect.content = contentArea;
 
-            // Lines layer (behind nodes)
             GameObject linesGO = new GameObject("LinesLayer", typeof(RectTransform));
             linesGO.transform.SetParent(contentArea, false);
             linesLayer = linesGO.GetComponent<RectTransform>();
@@ -352,7 +401,6 @@ namespace FLOBUK.StoreSimulator
             linesLayer.offsetMin = Vector2.zero;
             linesLayer.offsetMax = Vector2.zero;
 
-            // Nodes layer (above lines)
             GameObject nodesGO = new GameObject("NodesLayer", typeof(RectTransform));
             nodesGO.transform.SetParent(contentArea, false);
             nodesLayer = nodesGO.GetComponent<RectTransform>();
@@ -362,28 +410,34 @@ namespace FLOBUK.StoreSimulator
             nodesLayer.offsetMax = Vector2.zero;
         }
 
-        // ─── Layout ───────────────────────────────────────────────────────────────
+        private void BuildGraphIfNeeded()
+        {
+            if (nodesLayer == null || linesLayer == null || contentArea == null || EntrepreneurTreeSystem.Instance == null)
+            {
+                Debug.LogWarning(LOG_PREFIX + "No se pudo construir el grafo: referencias de UI incompletas.");
+                return;
+            }
 
-        /// <summary>
-        /// Computes pixel positions for every node using BFS depth assignment.
-        /// Nodes at the same depth are centred horizontally.
-        /// </summary>
+            if (nodeUIs.Count > 0)
+                return;
+
+            CalculateNodePositions();
+            BuildNodes();
+            BuildConnectionLines();
+            ResizeContentArea();
+        }
+
         private void CalculateNodePositions()
         {
-            if (EntrepreneurTreeSystem.Instance == null) return;
-
             List<SkillTreeNode> allNodes = EntrepreneurTreeSystem.Instance.nodes;
             nodePositions.Clear();
-
-            // ── 1. Assign depth via BFS ─────────────────────────────────────────
-            var depths = new Dictionary<string, int>();
-            var childrenOf = new Dictionary<string, List<string>>();
+            Dictionary<string, int> depths = new Dictionary<string, int>();
+            Dictionary<string, List<string>> childrenOf = new Dictionary<string, List<string>>();
 
             foreach (SkillTreeNode n in allNodes)
             {
                 if (!childrenOf.ContainsKey(n.id))
                     childrenOf[n.id] = new List<string>();
-
                 foreach (string prereqId in n.prerequisites)
                 {
                     if (string.IsNullOrEmpty(prereqId)) continue;
@@ -393,13 +447,14 @@ namespace FLOBUK.StoreSimulator
                 }
             }
 
-            var queue = new Queue<string>();
+            Queue<string> queue = new Queue<string>();
             foreach (SkillTreeNode n in allNodes)
             {
                 bool hasPrereqs = false;
                 foreach (string p in n.prerequisites)
+                {
                     if (!string.IsNullOrEmpty(p)) { hasPrereqs = true; break; }
-
+                }
                 if (!hasPrereqs)
                 {
                     depths[n.id] = 0;
@@ -407,16 +462,14 @@ namespace FLOBUK.StoreSimulator
                 }
             }
 
-            // Handle nodes not reachable from roots (circular or disconnected)
-            int maxGuard = allNodes.Count * 2;
             int guard = 0;
+            int maxGuard = allNodes.Count * 3;
             while (queue.Count > 0 && guard++ < maxGuard)
             {
                 string cur = queue.Dequeue();
-                if (!depths.ContainsKey(cur)) depths[cur] = 0;
-                int curDepth = depths[cur];
-
+                int curDepth = depths.ContainsKey(cur) ? depths[cur] : 0;
                 if (!childrenOf.ContainsKey(cur)) continue;
+
                 foreach (string child in childrenOf[cur])
                 {
                     int newDepth = curDepth + 1;
@@ -428,36 +481,31 @@ namespace FLOBUK.StoreSimulator
                 }
             }
 
-            // ── 2. Group nodes by depth ─────────────────────────────────────────
-            var byLevel = new Dictionary<int, List<SkillTreeNode>>();
+            Dictionary<int, List<SkillTreeNode>> byLevel = new Dictionary<int, List<SkillTreeNode>>();
             int maxDepth = 0;
             foreach (SkillTreeNode n in allNodes)
             {
                 int d = depths.ContainsKey(n.id) ? depths[n.id] : 0;
                 if (!byLevel.ContainsKey(d)) byLevel[d] = new List<SkillTreeNode>();
                 byLevel[d].Add(n);
-                maxDepth = Mathf.Max(maxDepth, d);
+                if (d > maxDepth) maxDepth = d;
             }
 
-            // ── 3. Calculate pixel positions ────────────────────────────────────
-            // sort each level: Products first, then Employees, then Upgrades/Security
             for (int lvl = 0; lvl <= maxDepth; lvl++)
             {
                 if (!byLevel.ContainsKey(lvl)) continue;
                 byLevel[lvl].Sort((a, b) =>
                 {
-                    int catOrderA = (a.category == SkillTreeCategory.Product) ? 0
-                                  : (a.category == SkillTreeCategory.Employee) ? 1 : 2;
-                    int catOrderB = (b.category == SkillTreeCategory.Product) ? 0
-                                  : (b.category == SkillTreeCategory.Employee) ? 1 : 2;
+                    int catOrderA = (a.category == SkillTreeCategory.Product) ? 0 : (a.category == SkillTreeCategory.Employee ? 1 : 2);
+                    int catOrderB = (b.category == SkillTreeCategory.Product) ? 0 : (b.category == SkillTreeCategory.Employee ? 1 : 2);
                     int diff = catOrderA - catOrderB;
                     return diff != 0 ? diff : string.Compare(a.id, b.id, System.StringComparison.Ordinal);
                 });
 
                 List<SkillTreeNode> levelNodes = byLevel[lvl];
                 float totalW = (levelNodes.Count - 1) * H_SPACING;
-                float startX = CONTENT_PAD + (GetMaxColumnsInTree(byLevel, maxDepth) * H_SPACING - totalW) * 0.5f;
-
+                float maxColumnsWidth = GetMaxColumns(byLevel, maxDepth) * H_SPACING;
+                float startX = CONTENT_PAD + (maxColumnsWidth - totalW) * 0.5f;
                 for (int i = 0; i < levelNodes.Count; i++)
                 {
                     float x = startX + i * H_SPACING;
@@ -467,54 +515,42 @@ namespace FLOBUK.StoreSimulator
             }
         }
 
-
-        private int GetMaxColumnsInTree(Dictionary<int, List<SkillTreeNode>> byLevel, int maxDepth)
+        private int GetMaxColumns(Dictionary<int, List<SkillTreeNode>> byLevel, int maxDepth)
         {
             int max = 1;
             for (int i = 0; i <= maxDepth; i++)
-                if (byLevel.ContainsKey(i)) max = Mathf.Max(max, byLevel[i].Count);
+                if (byLevel.ContainsKey(i) && byLevel[i].Count > max)
+                    max = byLevel[i].Count;
             return max;
         }
 
-
         private void ResizeContentArea()
         {
-            if (contentArea == null || nodePositions.Count == 0) return;
-
-            float maxX = 0f, maxY = 0f;
+            float maxX = 0f;
+            float maxY = 0f;
             foreach (Vector2 p in nodePositions.Values)
             {
-                maxX = Mathf.Max(maxX, p.x);
-                maxY = Mathf.Max(maxY, Mathf.Abs(p.y));
+                if (p.x > maxX) maxX = p.x;
+                float absY = Mathf.Abs(p.y);
+                if (absY > maxY) maxY = absY;
             }
-
-            contentArea.sizeDelta = new Vector2(
-                maxX + NODE_W + CONTENT_PAD,
-                maxY + NODE_H + CONTENT_PAD
-            );
+            contentArea.sizeDelta = new Vector2(maxX + NODE_W + CONTENT_PAD, maxY + NODE_H + CONTENT_PAD);
         }
-
-        // ─── Node creation ────────────────────────────────────────────────────────
 
         private void BuildNodes()
         {
-            if (EntrepreneurTreeSystem.Instance == null) return;
-
             foreach (SkillTreeNode node in EntrepreneurTreeSystem.Instance.nodes)
             {
                 if (!nodePositions.ContainsKey(node.id)) continue;
-                Vector2 pos = nodePositions[node.id];
-                EntrepreneurTreeNodeUI ui = CreateNodeUI(node, pos);
-                nodeUIs[node.id] = ui;
+                EntrepreneurTreeNodeUI ui = CreateNodeUI(node, nodePositions[node.id]);
+                if (ui != null)
+                    nodeUIs[node.id] = ui;
             }
         }
 
-
         private EntrepreneurTreeNodeUI CreateNodeUI(SkillTreeNode node, Vector2 position)
         {
-            // Root GO
-            GameObject nodeGO = new GameObject("Node_" + node.id,
-                typeof(RectTransform), typeof(CanvasGroup));
+            GameObject nodeGO = new GameObject("Node_" + node.id, typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
             nodeGO.transform.SetParent(nodesLayer, false);
 
             RectTransform nodeRT = nodeGO.GetComponent<RectTransform>();
@@ -522,23 +558,19 @@ namespace FLOBUK.StoreSimulator
             nodeRT.anchorMax = new Vector2(0f, 1f);
             nodeRT.pivot = new Vector2(0.5f, 0.5f);
             nodeRT.sizeDelta = new Vector2(NODE_W, NODE_H);
-            // position.y is already negative (distance from top)
             nodeRT.anchoredPosition = new Vector2(position.x + NODE_W * 0.5f, position.y - NODE_H * 0.5f);
 
-            // Background image
-            Image bgImage = nodeGO.AddComponent<Image>();
+            Image bgImage = nodeGO.GetComponent<Image>();
 
-            // Category stripe (4px left border)
             GameObject stripeGO = new GameObject("Stripe", typeof(RectTransform), typeof(Image));
             stripeGO.transform.SetParent(nodeGO.transform, false);
             RectTransform stripeRT = stripeGO.GetComponent<RectTransform>();
             stripeRT.anchorMin = new Vector2(0f, 0f);
             stripeRT.anchorMax = new Vector2(0f, 1f);
             stripeRT.offsetMin = Vector2.zero;
-            stripeRT.offsetMax = new Vector2(4f, 0f);
+            stripeRT.offsetMax = new Vector2(5f, 0f);
             Image stripeImg = stripeGO.GetComponent<Image>();
 
-            // Border (outer outline)
             GameObject borderGO = new GameObject("Border", typeof(RectTransform), typeof(Image));
             borderGO.transform.SetParent(nodeGO.transform, false);
             RectTransform borderRT = borderGO.GetComponent<RectTransform>();
@@ -549,29 +581,18 @@ namespace FLOBUK.StoreSimulator
             Image borderImg = borderGO.GetComponent<Image>();
             borderImg.color = new Color(0f, 0f, 0f, 0.3f);
 
-            // Truncate long titles to fit
-            string displayTitle = node.title.Length > 22
-                ? node.title.Substring(0, 20) + "…"
-                : node.title;
-
-            // Title label
-            TMP_Text titleText = CreateLabel(nodeGO.transform, "TitleLabel",
-                displayTitle,
-                new Vector2(0.04f, 0.30f), new Vector2(1f, 1f),
-                Vector2.zero, Vector2.zero,
-                9.5f, FontStyles.Bold, Color.white, TextAlignmentOptions.TopLeft);
+            string displayTitle = node.title.Length > 26 ? node.title.Substring(0, 23) + "…" : node.title;
+            TMP_Text titleText = CreateLabel(nodeGO.transform, "TitleLabel", displayTitle,
+                new Vector2(0.05f, 0.32f), new Vector2(0.98f, 0.96f),
+                Vector2.zero, Vector2.zero, 10f, FontStyles.Bold, Color.white, TextAlignmentOptions.TopLeft);
             titleText.enableWordWrapping = true;
             titleText.overflowMode = TextOverflowModes.Ellipsis;
 
-            // Status icon (bottom-right)
-            TMP_Text statusText = CreateLabel(nodeGO.transform, "StatusLabel",
-                string.Empty,
-                new Vector2(0f, 0f), new Vector2(1f, 0.35f),
-                Vector2.zero, Vector2.zero,
-                10f, FontStyles.Normal, Color.white, TextAlignmentOptions.BottomRight);
-            statusText.margin = new Vector4(0, 0, 4f, 2f);
+            TMP_Text statusText = CreateLabel(nodeGO.transform, "StatusLabel", string.Empty,
+                new Vector2(0f, 0f), new Vector2(1f, 0.34f),
+                Vector2.zero, Vector2.zero, 12f, FontStyles.Normal, Color.white, TextAlignmentOptions.BottomRight);
+            statusText.margin = new Vector4(0, 0, 6f, 2f);
 
-            // Hover overlay
             GameObject hoverGO = new GameObject("HoverOverlay", typeof(RectTransform), typeof(Image));
             hoverGO.transform.SetParent(nodeGO.transform, false);
             RectTransform hoverRT = hoverGO.GetComponent<RectTransform>();
@@ -583,63 +604,128 @@ namespace FLOBUK.StoreSimulator
             hoverImg.color = new Color(1f, 1f, 1f, 0.10f);
             hoverGO.SetActive(false);
 
-            // Add GraphicRaycaster-compatible component
-            nodeGO.AddComponent<EntrepreneurTreeNodeUI>().Initialize(
-                node, bgImage, borderImg, stripeImg, titleText, statusText, hoverImg,
-                OnNodeClicked);
-
-            return nodeGO.GetComponent<EntrepreneurTreeNodeUI>();
+            EntrepreneurTreeNodeUI ui = nodeGO.AddComponent<EntrepreneurTreeNodeUI>();
+            ui.Initialize(node, bgImage, borderImg, stripeImg, titleText, statusText, hoverImg, OnNodeClicked);
+            return ui;
         }
-
-        // ─── Connection Lines ─────────────────────────────────────────────────────
 
         private void BuildConnectionLines()
         {
-            if (EntrepreneurTreeSystem.Instance == null) return;
-
             foreach (SkillTreeNode node in EntrepreneurTreeSystem.Instance.nodes)
             {
                 if (!nodePositions.ContainsKey(node.id)) continue;
                 Vector2 toPos = NodeCenter(node.id);
-
                 foreach (string prereqId in node.prerequisites)
                 {
                     if (string.IsNullOrEmpty(prereqId) || !nodePositions.ContainsKey(prereqId)) continue;
-                    Vector2 fromPos = NodeCenter(prereqId);
-
-                    CreateConnectionLine(prereqId, node.id, fromPos, toPos);
+                    CreateConnectionLine(prereqId, node.id, NodeCenter(prereqId), toPos);
                 }
             }
         }
 
-
         private void CreateConnectionLine(string fromId, string toId, Vector2 fromPos, Vector2 toPos)
         {
-            GameObject lineGO = new GameObject("Line_" + fromId + "_to_" + toId,
-                typeof(RectTransform), typeof(Image));
+            GameObject lineGO = new GameObject("Line_" + fromId + "_to_" + toId, typeof(RectTransform), typeof(Image));
             lineGO.transform.SetParent(linesLayer, false);
-
             RectTransform rt = lineGO.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 1f);
             rt.anchorMax = new Vector2(0f, 1f);
             rt.pivot = new Vector2(0.5f, 0.5f);
 
             Image img = lineGO.GetComponent<Image>();
-
             EntrepreneurTreeConnectionLineUI lineUI = lineGO.AddComponent<EntrepreneurTreeConnectionLineUI>();
             lineUI.Initialize(fromId, toId, fromPos, toPos, img);
             lineUIs.Add(lineUI);
         }
 
-
         private Vector2 NodeCenter(string nodeId)
         {
-            if (!nodePositions.ContainsKey(nodeId)) return Vector2.zero;
             Vector2 p = nodePositions[nodeId];
             return new Vector2(p.x + NODE_W * 0.5f, p.y - NODE_H * 0.5f);
         }
 
-        // ─── Interaction ──────────────────────────────────────────────────────────
+        private void WireUpgradesButton()
+        {
+            if (upgradesButton == null) return;
+            upgradesButton.onClick = new Button.ButtonClickedEvent();
+            upgradesButton.onClick.AddListener(ShowTreeTab);
+        }
+
+        private void WireTreeTabButtons()
+        {
+            if (treeTabButton != null)
+            {
+                treeTabButton.onClick.RemoveAllListeners();
+                treeTabButton.onClick.AddListener(ShowTreeTab);
+            }
+
+            if (expansionsTabButton != null)
+            {
+                expansionsTabButton.onClick.RemoveAllListeners();
+                expansionsTabButton.onClick.AddListener(ShowExpansionsTab);
+                expansionsTabButton.gameObject.SetActive(originalExpansionsPanel != null);
+            }
+        }
+
+        private void WireSubtabsAndFallbacks()
+        {
+            if (originalExpansionsPanel == null) return;
+
+            Transform existing = FindDeepByName(originalExpansionsPanel.transform, "BackToTreeButton");
+            if (existing != null)
+            {
+                expansionsReturnButton = existing.GetComponent<Button>();
+                if (expansionsReturnButton != null)
+                {
+                    expansionsReturnButton.onClick.RemoveAllListeners();
+                    expansionsReturnButton.onClick.AddListener(ShowTreeTab);
+                }
+                return;
+            }
+
+            GameObject backBtnGO = CreatePanel(originalExpansionsPanel.transform, "BackToTreeButton",
+                new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(-170f, -42f), new Vector2(-12f, -8f), new Color(0.17f, 0.39f, 0.66f, 0.92f));
+            expansionsReturnButton = backBtnGO.AddComponent<Button>();
+            expansionsReturnButton.targetGraphic = backBtnGO.GetComponent<Image>();
+            expansionsReturnButton.onClick.AddListener(ShowTreeTab);
+
+            CreateLabel(backBtnGO.transform, "BackToTreeLabel", "Árbol del Emprendedor",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 11f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.Center);
+        }
+
+        private void ShowTreeTab()
+        {
+            if (treeRoot == null) return;
+
+            UIShopCategoryHelper helper = upgradesRootPanel != null ? upgradesRootPanel.GetComponent<UIShopCategoryHelper>() : null;
+            if (helper != null) helper.Show(treeRoot);
+            else treeRoot.SetActive(true);
+
+            if (treeContentPanel != null)
+                treeContentPanel.gameObject.SetActive(true);
+
+            RefreshAllNodeVisuals();
+            RefreshAllLines();
+            UpdatePointsLabel();
+        }
+
+        private void ShowExpansionsTab()
+        {
+            if (originalExpansionsPanel == null)
+            {
+                ShowMessage("No se encontró el panel de Expansiones.");
+                return;
+            }
+
+            UIShopCategoryHelper helper = upgradesRootPanel != null ? upgradesRootPanel.GetComponent<UIShopCategoryHelper>() : null;
+            if (helper != null) helper.Show(originalExpansionsPanel);
+            else
+            {
+                originalExpansionsPanel.SetActive(true);
+                if (treeRoot != null) treeRoot.SetActive(false);
+            }
+        }
 
         private void OnNodeClicked(EntrepreneurTreeNodeUI clickedUI)
         {
@@ -648,44 +734,38 @@ namespace FLOBUK.StoreSimulator
 
             selectedNodeUI = clickedUI;
             selectedNodeUI.SetSelected(true);
-
             ShowNodeInfo(clickedUI.node);
             HideMessage();
         }
 
-
         private void ShowNodeInfo(SkillTreeNode node)
         {
+            if (infoNameLabel == null) return;
+
             infoNameLabel.text = node.title;
             infoDescLabel.text = node.description;
+            infoCostLabel.text = node.pointCost == 0 ? "Coste: Gratis" : "Coste: " + node.pointCost + " punto(s)";
 
-            infoCostLabel.text = node.pointCost == 0
-                ? "Coste: Gratis"
-                : "Coste: " + node.pointCost + " punto(s) de progreso";
-
-            // Requirements
-            if (node.prerequisites.Count == 0 ||
-                (node.prerequisites.Count == 1 && string.IsNullOrEmpty(node.prerequisites[0])))
+            if (node.prerequisites.Count == 0)
             {
                 infoReqsLabel.text = "Sin requisitos previos";
                 infoReqsLabel.color = new Color(0.50f, 0.80f, 0.55f, 1f);
             }
             else
             {
-                var lines = new System.Text.StringBuilder("Requisitos:\n");
+                System.Text.StringBuilder sb = new System.Text.StringBuilder("Requisitos:\n");
                 foreach (string prereqId in node.prerequisites)
                 {
                     if (string.IsNullOrEmpty(prereqId)) continue;
                     bool met = EntrepreneurTreeSystem.IsNodeUnlocked(prereqId);
                     SkillTreeNode prereq = EntrepreneurTreeSystem.GetNode(prereqId);
                     string name = prereq != null ? prereq.title : prereqId;
-                    lines.AppendLine((met ? "✓ " : "✗ ") + name);
+                    sb.AppendLine((met ? "✓ " : "✗ ") + name);
                 }
-                infoReqsLabel.text = lines.ToString().TrimEnd();
+                infoReqsLabel.text = sb.ToString().TrimEnd();
                 infoReqsLabel.color = new Color(0.85f, 0.50f, 0.50f, 1f);
             }
 
-            // Status
             if (node.isUnlocked)
             {
                 infoStatusLabel.text = "Estado: Desbloqueado ✓";
@@ -695,14 +775,12 @@ namespace FLOBUK.StoreSimulator
             }
 
             string blockReason = EntrepreneurTreeSystem.GetUnlockBlockReason(node.id);
-            if (blockReason == null)
+            if (string.IsNullOrEmpty(blockReason))
             {
                 infoStatusLabel.text = "Estado: Disponible";
                 infoStatusLabel.color = new Color(0.85f, 0.78f, 0.20f, 1f);
-            string costLabel = node.pointCost == 0
-                ? "Desbloquear (gratis)"
-                : "Desbloquear (" + node.pointCost + " pto)";
-            SetUnlockButtonState(true, costLabel);
+                string costLabel = node.pointCost == 0 ? "Desbloquear (gratis)" : "Desbloquear (" + node.pointCost + " pto)";
+                SetUnlockButtonState(true, costLabel);
             }
             else
             {
@@ -712,26 +790,30 @@ namespace FLOBUK.StoreSimulator
             }
         }
 
-
         private void ShowPlaceholderInfo()
         {
+            if (infoNameLabel == null) return;
+
             infoNameLabel.text = "Selecciona un nodo";
-            infoDescLabel.text = "Haz click en un nodo del árbol para ver sus detalles.";
+            infoDescLabel.text = "Haz click en un nodo para ver nombre, descripción, coste y requisitos.";
             infoCostLabel.text = string.Empty;
             infoReqsLabel.text = string.Empty;
             infoStatusLabel.text = string.Empty;
             SetUnlockButtonState(false, "Selecciona un nodo");
         }
 
-
         private void SetUnlockButtonState(bool enabled, string label)
         {
             if (unlockButton == null) return;
-            unlockButton.interactable = enabled;
-            unlockButton.GetComponent<Image>().color = enabled ? COL_BTN_UNLOCK : COL_BTN_LOCKED;
-            if (unlockButtonLabel != null) unlockButtonLabel.text = label;
-        }
 
+            unlockButton.interactable = enabled;
+            Image img = unlockButton.GetComponent<Image>();
+            if (img != null)
+                img.color = enabled ? COL_BTN_UNLOCK : COL_BTN_LOCKED;
+
+            if (unlockButtonLabel != null)
+                unlockButtonLabel.text = label;
+        }
 
         private void OnUnlockButtonClicked()
         {
@@ -742,35 +824,30 @@ namespace FLOBUK.StoreSimulator
             {
                 string reason = EntrepreneurTreeSystem.GetUnlockBlockReason(selectedNodeUI.node.id);
                 ShowMessage(reason ?? "No se puede desbloquear.");
+                ShowNodeInfo(selectedNodeUI.node);
             }
         }
-
-        // ─── Event handlers ───────────────────────────────────────────────────────
 
         private void OnPointsChanged(int points)
         {
             UpdatePointsLabel();
+            if (selectedNodeUI != null)
+                ShowNodeInfo(selectedNodeUI.node);
         }
-
 
         private void OnNodeUnlocked(SkillTreeNode node)
         {
             RefreshAllNodeVisuals();
             RefreshAllLines();
-
-            // Update info panel if the unlocked node is selected
-            if (selectedNodeUI != null && selectedNodeUI.node.id == node.id)
+            if (selectedNodeUI != null)
                 ShowNodeInfo(selectedNodeUI.node);
         }
-
 
         private void UpdatePointsLabel()
         {
             if (pointsLabel == null || EntrepreneurTreeSystem.Instance == null) return;
-            int pts = EntrepreneurTreeSystem.Instance.progressPoints;
-            pointsLabel.text = "Puntos disponibles: " + pts;
+            pointsLabel.text = "Puntos disponibles: " + EntrepreneurTreeSystem.Instance.progressPoints;
         }
-
 
         private void RefreshAllNodeVisuals()
         {
@@ -778,86 +855,53 @@ namespace FLOBUK.StoreSimulator
                 ui.RefreshVisuals();
         }
 
-
         private void RefreshAllLines()
         {
             foreach (EntrepreneurTreeConnectionLineUI line in lineUIs)
                 line.RefreshColor();
         }
 
-
         private void ShowMessage(string text)
         {
             if (messageLabel == null) return;
-            messageLabel.text = text;
-            StopAllCoroutines();
-            StartCoroutine(FadeOutMessage(4f));
-        }
 
+            messageLabel.text = text;
+            if (messageCoroutine != null)
+                StopCoroutine(messageCoroutine);
+            messageCoroutine = StartCoroutine(FadeOutMessage(4f));
+        }
 
         private void HideMessage()
         {
             if (messageLabel == null) return;
-            messageLabel.text = string.Empty;
-        }
 
+            messageLabel.text = string.Empty;
+            if (messageCoroutine != null)
+            {
+                StopCoroutine(messageCoroutine);
+                messageCoroutine = null;
+            }
+        }
 
         private IEnumerator FadeOutMessage(float delay)
         {
             yield return new WaitForSeconds(delay);
-            if (messageLabel != null) messageLabel.text = string.Empty;
+            if (messageLabel != null)
+                messageLabel.text = string.Empty;
+            messageCoroutine = null;
         }
 
-        // ─── Button wiring ────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Finds "Button - Upgrades" in the taskbar/desktop hierarchy and replaces
-        /// its onClick to show EntrepreneurTreeRoot instead of the old Expansions panel.
-        /// </summary>
-        private void WireUpgradesButton(Transform desktopRoot, Transform categories, GameObject treeRoot)
-        {
-            Button upgradesBtn = FindButtonByName(desktopRoot, "Button - Upgrades");
-            if (upgradesBtn == null)
-            {
-                Debug.LogWarning("[UpgradesUIController] 'Button - Upgrades' not found. Wire manually.");
-                return;
-            }
-
-            UIShopCategoryHelper helper = categories.GetComponent<UIShopCategoryHelper>();
-            if (helper == null)
-            {
-                Debug.LogWarning("[UpgradesUIController] UIShopCategoryHelper not found on Categories.");
-                return;
-            }
-
-            // Replace ALL onClick listeners (including persistent prefab ones) with our own.
-            // This redirects the Upgrades button from the old "Expansions" panel to the tree.
-            upgradesBtn.onClick = new Button.ButtonClickedEvent();
-            upgradesBtn.onClick.AddListener(() =>
-            {
-                helper.Show(treeRoot);
-                RefreshAllNodeVisuals();
-                RefreshAllLines();
-                UpdatePointsLabel();
-            });
-        }
-
-        // ─── Scene helpers ────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Ensures EntrepreneurTreeSystem exists in the scene; creates it if missing.
-        /// </summary>
         private void EnsureTreeSystemExists()
         {
             if (EntrepreneurTreeSystem.Instance != null) return;
             GameObject go = new GameObject("EntrepreneurTreeSystem");
             go.AddComponent<EntrepreneurTreeSystem>();
-            Debug.Log("[UpgradesUIController] Created EntrepreneurTreeSystem automatically.");
+            Debug.Log(LOG_PREFIX + "No se encontró EntrepreneurTreeSystem; se creó automáticamente.");
         }
-
 
         private Transform FindDeepByName(Transform root, string name)
         {
+            if (root == null) return null;
             if (root.name == name) return root;
             for (int i = 0; i < root.childCount; i++)
             {
@@ -867,14 +911,23 @@ namespace FLOBUK.StoreSimulator
             return null;
         }
 
-
         private Button FindButtonByName(Transform root, string name)
         {
             Transform t = FindDeepByName(root, name);
             return t != null ? t.GetComponent<Button>() : null;
         }
 
-        // ─── UI builder helpers ───────────────────────────────────────────────────
+        private Button CreateTabButton(Transform parent, string name, string text, Vector2 anchorMin, Vector2 anchorMax)
+        {
+            GameObject btnGO = CreatePanel(parent, name, anchorMin, anchorMax, Vector2.zero, Vector2.zero, new Color(0.17f, 0.39f, 0.66f, 0.92f));
+            Button btn = btnGO.AddComponent<Button>();
+            btn.targetGraphic = btnGO.GetComponent<Image>();
+
+            CreateLabel(btnGO.transform, name + "Label", text,
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 11f, FontStyles.Bold, COL_TEXT_WHITE, TextAlignmentOptions.Center);
+
+            return btn;
+        }
 
         private static GameObject CreatePanel(Transform parent, string name,
             Vector2 anchorMin, Vector2 anchorMax,
@@ -893,7 +946,6 @@ namespace FLOBUK.StoreSimulator
             go.GetComponent<Image>().color = color;
             return go;
         }
-
 
         private static TMP_Text CreateLabel(Transform parent, string name, string text,
             Vector2 anchorMin, Vector2 anchorMax,

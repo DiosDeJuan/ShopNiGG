@@ -27,6 +27,15 @@ namespace FLOBUK.StoreSimulator
         /// Event fired when the available progress points change.
         /// </summary>
         public static event Action<int> onProgressPointsChanged;
+        /// <summary>
+        /// Pascal-case alias for external integrations.
+        /// </summary>
+        public static event Action<int> OnProgressPointsChanged;
+
+        /// <summary>
+        /// Fired whenever points are added with a reason (source telemetry/debug).
+        /// </summary>
+        public static event Action<int, string> onProgressPointsAdded;
 
         /// <summary>
         /// All nodes in the entrepreneur skill tree. (RQF3)
@@ -40,12 +49,25 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public int progressPoints { get; private set; }
 
+        /// <summary>
+        /// Fallback source: add 1 point on level-up.
+        /// </summary>
+        public bool useLevelUpFallback = true;
+
+        /// <summary>
+        /// Optional point source components implementing IProgressPointSource.
+        /// </summary>
+        public List<MonoBehaviour> progressPointSourceBehaviours = new List<MonoBehaviour>();
+        private readonly List<IProgressPointSource> pointSources = new List<IProgressPointSource>();
+
 
         //initialize references
         void Awake()
         {
             Instance = this;
-            StoreDatabase.onLevelUpdate += OnLevelUp;
+            if (useLevelUpFallback)
+                StoreDatabase.onLevelUpdate += OnLevelUp;
+            RegisterPointSources();
         }
 
 
@@ -60,19 +82,71 @@ namespace FLOBUK.StoreSimulator
         //award 1 progress point each time the player levels up
         private void OnLevelUp(int level)
         {
-            AddProgressPoints(1);
+            AddProgressPoints(1, "LevelUp");
+        }
+
+
+        //register optional point source adapters implementing IProgressPointSource
+        private void RegisterPointSources()
+        {
+            pointSources.Clear();
+            for (int i = 0; i < progressPointSourceBehaviours.Count; i++)
+            {
+                MonoBehaviour behaviour = progressPointSourceBehaviours[i];
+                if (behaviour is IProgressPointSource source)
+                {
+                    source.onProgressPointsGranted += OnExternalProgressPointsGranted;
+                    pointSources.Add(source);
+                }
+            }
+        }
+
+
+        private void OnExternalProgressPointsGranted(int amount, string reason)
+        {
+            AddProgressPoints(amount, reason);
+        }
+
+
+        private void NotifyProgressPointsChanged()
+        {
+            onProgressPointsChanged?.Invoke(progressPoints);
+            OnProgressPointsChanged?.Invoke(progressPoints);
         }
 
 
         /// <summary>
         /// Awards progress points. Use this to integrate with achievement systems or other events.
-        /// Connect to: AddProgressPoints(int amount)
+        /// Connect to: AddProgressPoints(int amount, string reason)
         /// </summary>
         public static void AddProgressPoints(int amount)
         {
-            if (Instance == null) return;
+            AddProgressPoints(amount, "Unspecified");
+        }
+
+        /// <summary>
+        /// Awards progress points with a reason tag.
+        /// </summary>
+        public static void AddProgressPoints(int amount, string reason)
+        {
+            if (Instance == null || amount <= 0) return;
+
             Instance.progressPoints = Mathf.Max(0, Instance.progressPoints + amount);
-            onProgressPointsChanged?.Invoke(Instance.progressPoints);
+            onProgressPointsAdded?.Invoke(amount, reason);
+            Instance.NotifyProgressPointsChanged();
+        }
+
+        /// <summary>
+        /// Spends progress points if available.
+        /// </summary>
+        public static bool SpendProgressPoints(int amount)
+        {
+            if (Instance == null || amount < 0) return false;
+            if (Instance.progressPoints < amount) return false;
+
+            Instance.progressPoints -= amount;
+            Instance.NotifyProgressPointsChanged();
+            return true;
         }
 
 
@@ -166,10 +240,12 @@ namespace FLOBUK.StoreSimulator
             }
 
             //deduct points and unlock
-            Instance.progressPoints -= (int)node.pointCost;
+            if (!SpendProgressPoints((int)node.pointCost))
+            {
+                UIGame.Instance.ShowMessage("No tienes suficientes puntos de progreso.");
+                return false;
+            }
             node.isUnlocked = true;
-
-            onProgressPointsChanged?.Invoke(Instance.progressPoints);
             onNodeUnlocked?.Invoke(node);
             UIGame.AddNotification("¡Desbloqueado: " + node.title + "!", otherColor: Color.green);
 
@@ -190,12 +266,16 @@ namespace FLOBUK.StoreSimulator
                     //EmployeeSystem will already check IsNodeUnlocked(node.id) via requiredSkillNode
                     break;
 
-                case SkillTreeCategory.Security:
-                    //security levels map to the SecuritySystem's required skill node IDs
-                    //SecuritySystem checks IsNodeUnlocked(requiredSkillNodes[level]) to upgrade
-                    break;
-
                 case SkillTreeCategory.Upgrade:
+                    //security nodes are stored as Upgrade category and identified by seg_ prefix
+                    if (!string.IsNullOrEmpty(node.id) && node.id.StartsWith("seg_"))
+                    {
+                        //SecuritySystem.TryUpgradeLevel validates required nodes + applies percentages
+                        if (SecuritySystem.Instance != null)
+                            SecuritySystem.TryUpgradeLevel();
+                        break;
+                    }
+
                     if (node.id == "cafeina" && EmployeeSystem.Instance != null)
                     {
                         //+10% employee speed: shorter stocker restock time and cashier attend time
@@ -312,6 +392,9 @@ namespace FLOBUK.StoreSimulator
             if (data == null || data.Count == 0)
                 return;
 
+            if (nodes.Count == 0)
+                InitializeDefaultNodes();
+
             progressPoints = data["progressPoints"].AsInt;
 
             JSONArray nodeArray = data["nodes"].AsArray;
@@ -328,14 +411,19 @@ namespace FLOBUK.StoreSimulator
                 }
             }
 
-            onProgressPointsChanged?.Invoke(progressPoints);
+            NotifyProgressPointsChanged();
         }
 
 
         //unsubscribe from events
         void OnDestroy()
         {
-            StoreDatabase.onLevelUpdate -= OnLevelUp;
+            if (useLevelUpFallback)
+                StoreDatabase.onLevelUpdate -= OnLevelUp;
+
+            for (int i = 0; i < pointSources.Count; i++)
+                pointSources[i].onProgressPointsGranted -= OnExternalProgressPointsGranted;
+            pointSources.Clear();
         }
 
 
@@ -349,7 +437,7 @@ namespace FLOBUK.StoreSimulator
             nodes.Clear();
 
             //unlock Productos Básicos 1 for free at game start
-            progressPoints = 1;
+            progressPoints = 0;
 
             //────────────────────────────────────────────────
             // PRODUCTS
@@ -506,6 +594,8 @@ namespace FLOBUK.StoreSimulator
             AddNode("carismatico", "Carismático (+5% ventas)",
                 "La actitud positiva del equipo aumenta las ventas un 5%.",
                 SkillTreeCategory.Upgrade, 1, new[] { "emp_15" });
+
+            NotifyProgressPointsChanged();
         }
 
 
