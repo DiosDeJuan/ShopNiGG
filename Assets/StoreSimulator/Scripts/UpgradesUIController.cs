@@ -699,7 +699,10 @@ namespace FLOBUK.StoreSimulator
             {
                 infoStatusLabel.text = "Estado: Disponible";
                 infoStatusLabel.color = new Color(0.85f, 0.78f, 0.20f, 1f);
-                SetUnlockButtonState(true, "Desbloquear (1 pto)");
+            string costLabel = node.pointCost == 0
+                ? "Desbloquear (gratis)"
+                : "Desbloquear (" + node.pointCost + " pto)";
+            SetUnlockButtonState(true, costLabel);
             }
             else
             {
