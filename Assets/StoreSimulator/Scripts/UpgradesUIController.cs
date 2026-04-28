@@ -481,6 +481,9 @@ namespace FLOBUK.StoreSimulator
                 }
             }
 
+            if (guard >= maxGuard)
+                Debug.LogWarning(LOG_PREFIX + "Se alcanzó el límite de iteraciones del layout (posible ciclo en dependencias).");
+
             Dictionary<int, List<SkillTreeNode>> byLevel = new Dictionary<int, List<SkillTreeNode>>();
             int maxDepth = 0;
             foreach (SkillTreeNode n in allNodes)
@@ -581,7 +584,8 @@ namespace FLOBUK.StoreSimulator
             Image borderImg = borderGO.GetComponent<Image>();
             borderImg.color = new Color(0f, 0f, 0f, 0.3f);
 
-            string displayTitle = node.title.Length > 26 ? node.title.Substring(0, 23) + "…" : node.title;
+            string safeTitle = string.IsNullOrEmpty(node.title) ? node.id : node.title;
+            string displayTitle = safeTitle.Length > 26 ? safeTitle.Substring(0, 23) + "…" : safeTitle;
             TMP_Text titleText = CreateLabel(nodeGO.transform, "TitleLabel", displayTitle,
                 new Vector2(0.05f, 0.32f), new Vector2(0.98f, 0.96f),
                 Vector2.zero, Vector2.zero, 10f, FontStyles.Bold, Color.white, TextAlignmentOptions.TopLeft);

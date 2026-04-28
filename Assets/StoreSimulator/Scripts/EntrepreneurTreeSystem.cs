@@ -66,7 +66,10 @@ namespace FLOBUK.StoreSimulator
         {
             Instance = this;
             if (useLevelUpFallback)
+            {
+                StoreDatabase.onLevelUpdate -= OnLevelUp;
                 StoreDatabase.onLevelUpdate += OnLevelUp;
+            }
             RegisterPointSources();
         }
 
@@ -93,6 +96,12 @@ namespace FLOBUK.StoreSimulator
             for (int i = 0; i < progressPointSourceBehaviours.Count; i++)
             {
                 MonoBehaviour behaviour = progressPointSourceBehaviours[i];
+                if (behaviour == null)
+                {
+                    Debug.LogWarning("[EntrepreneurTree] progressPointSourceBehaviours contiene una referencia nula.");
+                    continue;
+                }
+
                 if (behaviour is IProgressPointSource source)
                 {
                     source.onProgressPointsGranted += OnExternalProgressPointsGranted;
@@ -131,7 +140,10 @@ namespace FLOBUK.StoreSimulator
         {
             if (Instance == null || amount <= 0) return;
 
-            Instance.progressPoints = Mathf.Max(0, Instance.progressPoints + amount);
+            long updated = (long)Instance.progressPoints + amount;
+            if (updated < 0) updated = 0;
+            if (updated > int.MaxValue) updated = int.MaxValue;
+            Instance.progressPoints = (int)updated;
             onProgressPointsAdded?.Invoke(amount, reason);
             Instance.NotifyProgressPointsChanged();
         }
@@ -139,12 +151,12 @@ namespace FLOBUK.StoreSimulator
         /// <summary>
         /// Spends progress points if available.
         /// </summary>
-        public static bool SpendProgressPoints(int amount)
+        public static bool SpendProgressPoints(long amount)
         {
             if (Instance == null || amount < 0) return false;
             if (Instance.progressPoints < amount) return false;
 
-            Instance.progressPoints -= amount;
+            Instance.progressPoints -= (int)amount;
             Instance.NotifyProgressPointsChanged();
             return true;
         }
@@ -240,7 +252,7 @@ namespace FLOBUK.StoreSimulator
             }
 
             //deduct points and unlock
-            if (!SpendProgressPoints((int)node.pointCost))
+            if (!SpendProgressPoints(node.pointCost))
             {
                 UIGame.Instance.ShowMessage("No tienes suficientes puntos de progreso.");
                 return false;
@@ -280,12 +292,12 @@ namespace FLOBUK.StoreSimulator
                     {
                         //+10% employee speed: shorter stocker restock time and cashier attend time
                         EmployeeSystem.Instance.stockerRestockTime *= 0.9f;
-                        EmployeeSystem.Instance.cashierAttendTime = EmployeeSystem.Instance.cashierAttendTime * 0.9f;
+                        EmployeeSystem.Instance.cashierAttendTime *= 0.9f;
                     }
                     else if (node.id == "carismatico" && CustomerSystem.Instance != null)
                     {
                         //+5% customer spawn rate as a proxy for sales boost
-                        CustomerSystem.Instance.spawnRate = Mathf.RoundToInt(CustomerSystem.Instance.spawnRate * 1.05f);
+                        CustomerSystem.Instance.spawnRate = Mathf.CeilToInt(CustomerSystem.Instance.spawnRate * 1.05f);
                     }
                     break;
 
