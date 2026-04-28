@@ -138,25 +138,33 @@ namespace FLOBUK.StoreSimulator
         /// </summary>
         public static void AddProgressPoints(int amount, string reason)
         {
-            if (Instance == null || amount <= 0) return;
+            AddProgressPoints((long)amount, reason);
+        }
+
+        /// <summary>
+        /// Awards progress points with a reason tag.
+        /// </summary>
+        public static void AddProgressPoints(long amount, string reason)
+        {
+            if (Instance == null || amount <= 0L) return;
 
             long updated = (long)Instance.progressPoints + amount;
             if (updated < 0) updated = 0;
             if (updated > int.MaxValue) updated = int.MaxValue;
             Instance.progressPoints = (int)updated;
-            onProgressPointsAdded?.Invoke(amount, reason);
+            onProgressPointsAdded?.Invoke((int)Mathf.Min(amount, int.MaxValue), reason);
             Instance.NotifyProgressPointsChanged();
         }
 
         /// <summary>
         /// Spends progress points if available.
         /// </summary>
-        public static bool SpendProgressPoints(long amount)
+        public static bool SpendProgressPoints(int amount)
         {
             if (Instance == null || amount < 0) return false;
             if (Instance.progressPoints < amount) return false;
 
-            Instance.progressPoints -= (int)amount;
+            Instance.progressPoints -= amount;
             Instance.NotifyProgressPointsChanged();
             return true;
         }
@@ -252,7 +260,13 @@ namespace FLOBUK.StoreSimulator
             }
 
             //deduct points and unlock
-            if (!SpendProgressPoints(node.pointCost))
+            if (node.pointCost > int.MaxValue)
+            {
+                UIGame.Instance.ShowMessage("Coste de nodo fuera de rango permitido.");
+                return false;
+            }
+
+            if (!SpendProgressPoints((int)node.pointCost))
             {
                 UIGame.Instance.ShowMessage("No tienes suficientes puntos de progreso.");
                 return false;

@@ -585,7 +585,9 @@ namespace FLOBUK.StoreSimulator
             borderImg.color = new Color(0f, 0f, 0f, 0.3f);
 
             string safeTitle = string.IsNullOrEmpty(node.title) ? node.id : node.title;
-            string displayTitle = safeTitle.Length > 26 ? safeTitle.Substring(0, 23) + "…" : safeTitle;
+            string displayTitle = safeTitle;
+            if (safeTitle.Length > 26)
+                displayTitle = safeTitle.Substring(0, Mathf.Min(23, safeTitle.Length)) + "…";
             TMP_Text titleText = CreateLabel(nodeGO.transform, "TitleLabel", displayTitle,
                 new Vector2(0.05f, 0.32f), new Vector2(0.98f, 0.96f),
                 Vector2.zero, Vector2.zero, 10f, FontStyles.Bold, Color.white, TextAlignmentOptions.TopLeft);
