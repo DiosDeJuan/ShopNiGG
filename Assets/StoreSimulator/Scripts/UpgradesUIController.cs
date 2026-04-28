@@ -36,6 +36,8 @@ namespace FLOBUK.StoreSimulator
         private const float H_SPACING = 210f;
         private const float V_SPACING = 128f;
         private const float CONTENT_PAD = 110f;
+        private const int NODE_TITLE_TRUNCATE_TRIGGER = 26;
+        private const int NODE_TITLE_TRUNCATE_LENGTH = 23;
 
         private GameObject treeRoot;
         private RectTransform treeContentPanel;
@@ -586,8 +588,8 @@ namespace FLOBUK.StoreSimulator
 
             string safeTitle = string.IsNullOrEmpty(node.title) ? node.id : node.title;
             string displayTitle = safeTitle;
-            if (safeTitle.Length > 26)
-                displayTitle = safeTitle.Substring(0, Mathf.Min(23, safeTitle.Length)) + "…";
+            if (safeTitle.Length > NODE_TITLE_TRUNCATE_TRIGGER)
+                displayTitle = safeTitle.Substring(0, Mathf.Min(NODE_TITLE_TRUNCATE_LENGTH, safeTitle.Length)) + "…";
             TMP_Text titleText = CreateLabel(nodeGO.transform, "TitleLabel", displayTitle,
                 new Vector2(0.05f, 0.32f), new Vector2(0.98f, 0.96f),
                 Vector2.zero, Vector2.zero, 10f, FontStyles.Bold, Color.white, TextAlignmentOptions.TopLeft);

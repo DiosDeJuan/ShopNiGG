@@ -9,8 +9,10 @@ namespace FLOBUK.StoreSimulator
     public interface IProgressPointSource
     {
         /// <summary>
-        /// amount, reason
+        /// Raised when the source grants progress points to the Entrepreneur Tree.
         /// </summary>
+        /// <param name="amount">Amount of progress points granted.</param>
+        /// <param name="reason">Reason/source tag for telemetry or UI messaging.</param>
         event Action<int, string> onProgressPointsGranted;
     }
 }

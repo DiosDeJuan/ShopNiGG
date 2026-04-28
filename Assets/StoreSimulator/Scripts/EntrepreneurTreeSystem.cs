@@ -26,6 +26,7 @@ namespace FLOBUK.StoreSimulator
         /// <summary>
         /// Event fired when the available progress points change.
         /// </summary>
+        [Obsolete("Use OnProgressPointsChanged instead.")]
         public static event Action<int> onProgressPointsChanged;
         /// <summary>
         /// Pascal-case alias for external integrations.
